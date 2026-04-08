@@ -62,6 +62,12 @@ class DropColumnsTransformer(BaseEstimator, TransformerMixin):
             print("[DropColumnsTransformer] No se eliminó ninguna columna")
         
         return X_copy
+    
+    def get_feature_names_out(self, input_features=None):
+        """Devuelve los nombres de las columnas después de la transformación."""
+        if input_features is None:
+            return None
+        return np.array([f for f in input_features if f not in self.columns_to_drop])
 
 
 class UnknownToNaNTransformer(BaseEstimator, TransformerMixin):
@@ -192,7 +198,7 @@ class SmartImputerTransformer(BaseEstimator, TransformerMixin):
     
     Estrategias:
     - Bajo % nulos (< low_threshold): usa mediana (numéricas) o moda (categóricas)
-    - Nulos moderados (low_threshold a high_threshold): imputa con 'missing' (categóricas) o mediana (numéricas)
+    - Nulos moderados (low_threshold a high_threshold): PENDIENTE (usa fallback)
     - Alto % nulos (> high_threshold): advierte (deberían haberse dropeado antes)
     
     Parámetros
@@ -200,7 +206,7 @@ class SmartImputerTransformer(BaseEstimator, TransformerMixin):
     low_threshold : float, default=0.10
         Umbral bajo (10%). Nulos < 10% se imputan con mediana/moda.
     high_threshold : float, default=0.50
-        Umbral alto (50%). Nulos entre 10%-50% usan estrategia especial.
+        Umbral alto (50%). Nulos entre 10%-50% son considerados "pendientes".
     
     Ejemplo
     -------
@@ -211,56 +217,50 @@ class SmartImputerTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, low_threshold=0.10, high_threshold=0.50):
         self.low_threshold = low_threshold
         self.high_threshold = high_threshold
+        self.cols_simples_ = []
+        self.cols_complejas_ = []
         self.impute_dict_ = {}
     
     def fit(self, X, y=None):
         """
         Calcula los valores de imputación para cada columna con nulos.
         """
-        missing_pct = X.isnull().sum() / len(X)
+        missing_pct = X.isnull().mean()
         
         for col in X.columns:
             pct = missing_pct[col]
             
-            # Caso 1: Sin nulos - no hacer nada
             if pct == 0:
                 continue
-            
-            # Caso 2: Bajo % de nulos (< low_threshold)
             elif pct <= self.low_threshold:
+                self.cols_simples_.append(col)
                 if pd.api.types.is_numeric_dtype(X[col]):
                     value = X[col].median()
-                    print(f"[SmartImputer] Columna '{col}': {pct*100:.1f}% nulos → imputar con mediana={value:.2f}")
+                    print(f"[SmartImputer] '{col}': {pct*100:.1f}% nulos → imputar con mediana={value:.2f}")
                 else:
                     mode_val = X[col].mode()
-                    if len(mode_val) > 0:
-                        value = mode_val[0]
-                    else:
-                        value = 'missing'
-                    print(f"[SmartImputer] Columna '{col}': {pct*100:.1f}% nulos → imputar con moda='{value}'")
-                
+                    value = mode_val[0] if len(mode_val) > 0 else 'missing'
+                    print(f"[SmartImputer] '{col}': {pct*100:.1f}% nulos → imputar con moda='{value}'")
                 self.impute_dict_[col] = value
-            
-            # Caso 3: Nulos moderados (low_threshold a high_threshold)
+                
             elif pct <= self.high_threshold:
+                self.cols_complejas_.append(col)
                 if pd.api.types.is_numeric_dtype(X[col]):
                     value = X[col].median()
-                    print(f"[SmartImputer] Columna '{col}': {pct*100:.1f}% nulos → imputar con mediana={value:.2f}")
                 else:
                     value = 'missing'
-                    print(f"[SmartImputer] Columna '{col}': {pct*100:.1f}% nulos → crear categoría 'missing'")
-                
                 self.impute_dict_[col] = value
-            
-            # Caso 4: Alto % de nulos (> high_threshold)
+                print(f"[SmartImputer] '{col}': {pct*100:.1f}% nulos → PENDIENTE (usando fallback)")
             else:
-                print(f"[SmartImputer] ADVERTENCIA: Columna '{col}' tiene {pct*100:.1f}% nulos.")
-                print(f"   → Considere usar DropHighMissingTransformer antes de imputar.")
+                print(f"[SmartImputer] ADVERTENCIA: '{col}' tiene {pct*100:.1f}% nulos → debería dropearse antes")
                 if pd.api.types.is_numeric_dtype(X[col]):
                     value = X[col].median()
                 else:
                     value = 'missing'
                 self.impute_dict_[col] = value
+        
+        if self.cols_complejas_:
+            print(f"   🚧 Pendiente de mejora: {self.cols_complejas_}")
         
         return self
     
@@ -273,20 +273,14 @@ class SmartImputerTransformer(BaseEstimator, TransformerMixin):
         for col, value in self.impute_dict_.items():
             if col in X_copy.columns and X_copy[col].isnull().any():
                 nulls_before = X_copy[col].isnull().sum()
-                X_copy[col] = X_copy[col].fillna(value)  # ← Sin inplace=True
-                print(f"[SmartImputer] Columna '{col}': imputados {nulls_before} nulos")
+                X_copy[col] = X_copy[col].fillna(value)
+                print(f"[SmartImputer] '{col}': imputados {nulls_before} nulos")
         
-        # Método de respaldo para nulos restantes (sin usar 'method')
+        # Método de respaldo para nulos restantes
         if X_copy.isnull().sum().sum() > 0:
             print("[SmartImputer] Advertencia: Aún hay nulos. Aplicando método de respaldo...")
+            X_copy = X_copy.ffill().bfill()
             
-            # Rellenar hacia adelante (ffill)
-            X_copy = X_copy.ffill()
-            
-            # Rellenar hacia atrás (bfill)
-            X_copy = X_copy.bfill()
-            
-            # Si aún hay nulos, rellenar con valores por defecto
             for col in X_copy.columns:
                 if X_copy[col].isnull().sum() > 0:
                     if pd.api.types.is_numeric_dtype(X_copy[col]):
@@ -428,3 +422,9 @@ class DropZeroVarianceTransformer(BaseEstimator, TransformerMixin):
             X_copy.drop(columns=self.cols_to_drop_, inplace=True)
         
         return X_copy
+    
+    def get_feature_names_out(self, input_features=None):
+        """Devuelve los nombres de las columnas después de la transformación."""
+        if input_features is None:
+            return None
+        return np.array([f for f in input_features if f not in self.cols_to_drop_])
