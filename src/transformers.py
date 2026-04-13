@@ -428,3 +428,105 @@ class DropZeroVarianceTransformer(BaseEstimator, TransformerMixin):
         if input_features is None:
             return None
         return np.array([f for f in input_features if f not in self.cols_to_drop_])
+
+
+class DynamicPreprocessor(BaseEstimator, TransformerMixin):
+    """
+    Preprocesador dinámico que detecta automáticamente variables numéricas
+    y categóricas, aplicando StandardScaler a numéricas y OneHotEncoder a categóricas.
+    
+    Esto evita conflictos cuando las columnas cambian durante el pipeline
+    (ej: después de DropZeroVarianceTransformer).
+    
+    Parámetros
+    ----------
+    target : str, default=None
+        Nombre de la columna target a excluir.
+    
+    Ejemplo
+    -------
+    >>> preprocessor = DynamicPreprocessor(target='stroke')
+    >>> X_procesado = preprocessor.fit_transform(X)
+    """
+    
+    def __init__(self, target=None):
+        self.target = target
+        self.scaler_ = None
+        self.encoder_ = None
+        self.numeric_cols_ = None
+        self.categorical_cols_ = None
+        self.feature_names_out_ = None
+    
+    def fit(self, X, y=None):
+        """
+        Identifica columnas numéricas y categóricas, y ajusta los transformadores.
+        """
+        from sklearn.preprocessing import StandardScaler, OneHotEncoder
+        
+        # Detectar columnas dinámicamente
+        self.numeric_cols_ = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
+        self.categorical_cols_ = X.select_dtypes(include=['object']).columns.tolist()
+        
+        # Remover target si existe
+        if self.target:
+            if self.target in self.numeric_cols_:
+                self.numeric_cols_.remove(self.target)
+            if self.target in self.categorical_cols_:
+                self.categorical_cols_.remove(self.target)
+        
+        print(f"[DynamicPreprocessor] Detectadas {len(self.numeric_cols_)} columnas numéricas")
+        print(f"[DynamicPreprocessor] Detectadas {len(self.categorical_cols_)} columnas categóricas")
+        
+        # Ajustar escalador si hay columnas numéricas
+        if self.numeric_cols_:
+            self.scaler_ = StandardScaler()
+            self.scaler_.fit(X[self.numeric_cols_])
+        
+        # Ajustar encoder si hay columnas categóricas
+        if self.categorical_cols_:
+            self.encoder_ = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+            self.encoder_.fit(X[self.categorical_cols_])
+        
+        return self
+    
+    def transform(self, X):
+        """
+        Aplica scaling a numéricas y encoding a categóricas, retorna array numpy.
+        """
+        X_numeric = None
+        X_categorical = None
+        
+        # Procesar columnas numéricas
+        if self.numeric_cols_:
+            X_numeric = self.scaler_.transform(X[self.numeric_cols_])
+        
+        # Procesar columnas categóricas
+        if self.categorical_cols_:
+            X_categorical = self.encoder_.transform(X[self.categorical_cols_])
+        
+        # Combinar resultados
+        if X_numeric is not None and X_categorical is not None:
+            X_processed = np.hstack([X_numeric, X_categorical])
+        elif X_numeric is not None:
+            X_processed = X_numeric
+        elif X_categorical is not None:
+            X_processed = X_categorical
+        else:
+            X_processed = np.array([])
+        
+        return X_processed
+    
+    def get_feature_names_out(self, input_features=None):
+        """Retorna los nombres de todas las características de salida."""
+        feature_names = []
+        
+        # Nombres de numéricas
+        if self.numeric_cols_:
+            feature_names.extend(self.numeric_cols_)
+        
+        # Nombres de categóricas (con prefijo del encoder)
+        if self.categorical_cols_:
+            cat_names = self.encoder_.get_feature_names_out(self.categorical_cols_)
+            feature_names.extend(cat_names)
+        
+        return np.array(feature_names)
