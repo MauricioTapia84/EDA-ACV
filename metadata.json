@@ -1,0 +1,47 @@
+{
+  "description": "Metadatos del dataset de salud (ACV - Accidente Cerebrovascular)",
+  "raw_data_files": {
+    "healthcare-dataset-stroke-data.csv": {
+      "description": "Dataset principal que contiene datos de pacientes y predicción de ACV",
+      "expected_shape": "Filas: N/A (variables), Columnas: ~11",
+      "expected_columns": [
+        "id",
+        "gender",
+        "age",
+        "hypertension",
+        "heart_disease",
+        "ever_married",
+        "work_type",
+        "Residence_type",
+        "avg_glucose_level",
+        "bmi",
+        "smoking_status",
+        "stroke"
+      ],
+      "data_types": {
+        "id": "int",
+        "gender": "object",
+        "age": "float",
+        "hypertension": "int",
+        "heart_disease": "int",
+        "ever_married": "object",
+        "work_type": "object",
+        "Residence_type": "object",
+        "avg_glucose_level": "float",
+        "bmi": "float",
+        "smoking_status": "object",
+        "stroke": "int"
+      },
+      "notes": "Estructura original sin transformaciones"
+    }
+  },
+  "audit_strategy": {
+    "checksum_algorithm": "sha256",
+    "validation_level": "strict",
+    "logging": {
+      "location": "outputs/audit_log.json",
+      "format": "JSONL (una línea por entrada)"
+    }
+  },
+  "last_updated": "2026-04-14"
+}
