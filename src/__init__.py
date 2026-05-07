@@ -1,22 +1,7 @@
-# src/__init__.py
-"""
-Módulo de transformers para pipeline de preprocessing.
-"""
-
 from .transformers import (
-    DropColumnsTransformer,
-    UnknownToNaNTransformer,
-    DropHighMissingTransformer,
-    SmartImputerTransformer,
-    OutlierCapper,
-    DropZeroVarianceTransformer
+    DropColumnsTransformer, UnknownToNaNTransformer,
+    DropHighMissingTransformer, SmartImputerTransformer, OutlierCapper
 )
-
-__all__ = [
-    'DropColumnsTransformer',
-    'UnknownToNaNTransformer', 
-    'DropHighMissingTransformer',
-    'SmartImputerTransformer',
-    'OutlierCapper',
-    'DropZeroVarianceTransformer'
-]
+from .pipeline import build_preprocessing_pipeline
+from .audit import audit_dataframe, compare_audits
+from .optimization import optimize_memory
