@@ -1,6 +1,13 @@
 # EDA-ACV
 Análisis exploratorio de datos de accidentes cerebrovascular y su probabilidad de que un paciente lo padezca
 
+## 🚀 Configuración Automática (Recomendado)
+
+Para configurar el entorno virtual, instalar dependencias y registrar el kernel de Jupyter de forma automática en **Windows, Linux o macOS**, ejecuta:
+
+```bash
+python3 setup_and_run.py
+
 ## Configuración del Entorno Virtual
 
 Para aislar las dependencias de este análisis EDA y asegurar que el código funcione correctamente en cualquier máquina sin conflictos de versiones, es indispensable la creación de un entorno virtual.
@@ -14,7 +21,9 @@ Para aislar las dependencias de este análisis EDA y asegurar que el código fun
 
 2. **Crea el entorno virtual usando el módulo incorporado de Python (`venv`):**
    ```powershell
-   python -m venv venv
+   sudo apt update
+   sudo apt install python3-venvF
+   python3 -m venv venv
    ```
    *Esto creará una carpeta llamada `venv` que contiene los binarios de python aislados.*
 
