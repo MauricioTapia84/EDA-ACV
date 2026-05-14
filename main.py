@@ -1,14 +1,14 @@
 """
-Orquestador principal del pipeline ETL (Extract, Transform, Load).
+Main orchestrator for the ETL (Extract, Transform, Load) pipeline.
 
-Este módulo ejecuta el flujo completo:
-1. AUDITORÍA: Verifica integridad de datos
-2. CARGA: Busca y carga CSV de data/raw/
-3. OPTIMIZACIÓN: Reduce memoria con downcast de tipos
-4. TRANSFORMACIÓN: Aplica pipeline de preprocesamiento
-5. GUARDADO: Exporta datos limpios a data/processed/
+This module executes the complete flow:
+1. AUDIT: Verifies data integrity.
+2. LOAD: Searches for and loads the raw CSV data.
+3. OPTIMIZATION: Reduces memory footprint using downcasting techniques.
+4. TRANSFORMATION: Applies the preprocessing pipeline.
+5. SAVE: Exports the clean dataset to the processed folder.
 
-Uso:
+Usage:
     python main.py
 """
 
@@ -26,25 +26,26 @@ from src.pipeline import build_preprocessing_pipeline
 
 def find_csv_file(raw_data_dir: str) -> str:
     """
-    Busca el primer archivo CSV en el directorio de datos crudos.
+    Searches for and returns the path to the first CSV file in the specified directory.
     
-    Parámetros
+    Parameters
     ----------
     raw_data_dir : str
-        Ruta al directorio con datos crudos.
+        Path to the directory containing raw data.
     
     Returns
     -------
     str
-        Ruta completa del archivo CSV encontrado.
+        Complete path to the located CSV file.
     
     Raises
     ------
     FileNotFoundError
-        Si no hay archivos CSV en el directorio.
+        If no CSV files are found in the directory.
     """
     csv_files = list(Path(raw_data_dir).glob('*.csv'))
     
+    # Busca automáticamente el archivo para no depender de nombres rígidos (Hardcoding)
     if not csv_files:
         raise FileNotFoundError(f"❌ No se encontraron archivos CSV en {raw_data_dir}")
     
@@ -54,107 +55,62 @@ def find_csv_file(raw_data_dir: str) -> str:
 
 
 def main():
-    """
-    Ejecuta el pipeline ETL completo.
+    """Executes the complete ETL pipeline."""
     
-    Flujo:
-        1. ✅ Auditoría inicial
-        2. 📂 Carga de datos
-        3. 🔧 Optimización de memoria
-        4. 🔄 Transformación (pipeline)
-        5. 💾 Guardado de resultados
-    """
-    
-    print("\n" + "="*60)
-    print("🚀 INICIANDO PIPELINE ETL")
-    print("="*60 + "\n")
+    print("="*60)
+    print("🏥 PIPELINE DE DATOS: ACCIDENTES CEREBROVASCULARES (ACV)")
+    print("="*60)
     
     try:
-        # ============ PASO 1: AUDITORÍA ============
-        print("1️⃣  AUDITORÍA INICIAL")
-        print("-" * 60)
+        # ============ 1. EXTRACCIÓN (CARGA DE DATOS) ============
+        print("\n📥 Fase 1: Extracción de datos")
+        raw_dir = "data/raw"
+        csv_path = find_csv_file(raw_dir)
+        df_raw = pd.read_csv(csv_path)
         
-        raw_data_dir = "data/raw"
-        processed_data_dir = "data/processed"
+        # ============ 2. AUDITORÍA INICIAL ============
+        # Asegura que el dataset no haya sido alterado externamente
+        print("\n🔍 Fase 2: Auditoría de integridad")
+        audit_dataframe(df_raw, "Carga Inicial")
         
-        # Asegurar que los directorios existen
-        os.makedirs(raw_data_dir, exist_ok=True)
-        os.makedirs(processed_data_dir, exist_ok=True)
+        # ============ 3. OPTIMIZACIÓN DE MEMORIA ============
+        # Reduce el peso del DataFrame transformando tipos de datos (ej. float64 -> float32)
+        print("\n⚙️  Fase 3: Optimización de memoria")
+        df_opt = optimize_memory(df_raw)
         
-        # ============ PASO 2: CARGA DE DATOS ============
-        print("\n2️⃣  CARGA DE DATOS")
-        print("-" * 60)
+        # ============ 4. PREPROCESAMIENTO (TRANSFORMACIÓN) ============
+        print("\n🏗️  Fase 4: Construcción y aplicación del Pipeline")
+        pipeline = build_preprocessing_pipeline(df_opt, target_col='stroke')
         
-        csv_path = find_csv_file(raw_data_dir)
+        # Separamos el target antes de transformar (Para evitar que se modifique o escale)
+        y = df_opt['stroke'] if 'stroke' in df_opt.columns else None
+        
+        # Aplicamos la transformación matemática
+        processed_matrix = pipeline.fit_transform(df_opt)
+        
+        # Recuperamos los nombres de las columnas post-transformación (ej. variables One-Hot)
+        try:
+            feature_names = pipeline.named_steps['preprocessing'].get_feature_names_out()
+            feature_names = [name.split("__")[-1] for name in feature_names]
+        except Exception:
+            feature_names = [f"feature_{i}" for i in range(processed_matrix.shape[1])]
+            
+        df_processed = pd.DataFrame(processed_matrix, columns=feature_names, index=df_opt.index)
+        
+        # Re-acoplamos la variable objetivo limpia al final del dataset
+        if y is not None:
+            df_processed['stroke'] = y
+            
+        # ============ 5. CARGA (GUARDADO FINAL) ============
+        print("\n💾 Fase 5: Guardado del dataset procesado")
+        processed_dir = Path("data/processed")
+        processed_dir.mkdir(parents=True, exist_ok=True)
+        
+        output_path = processed_dir / "stroke_data_processed.csv"
         
         try:
-            df_raw = pd.read_csv(csv_path)
-            print(f"✅ Datos cargados: {df_raw.shape[0]} filas × {df_raw.shape[1]} columnas")
-        except pd.errors.EmptyDataError:
-            raise ValueError(f"❌ El archivo CSV está vacío: {csv_path}")
-        except pd.errors.ParserError as e:
-            raise ValueError(f"❌ Error al parsear CSV (formato incorrecto): {e}")
-        except Exception as e:
-            raise ValueError(f"❌ Error inesperado al leer CSV: {e}")
-        
-        # Auditar datos crudos
-        audit_raw = audit_dataframe(
-            df_raw,
-            stage_name='raw_input',
-            log_file='outputs/audit_log.json'
-        )
-        
-        # ============ PASO 3: OPTIMIZACIÓN ============
-        print("\n3️⃣  OPTIMIZACIÓN DE MEMORIA")
-        print("-" * 60)
-        
-        df_optimized = optimize_memory(df_raw, verbose=True)
-        
-        # ============ PASO 4: TRANSFORMACIÓN ============
-        print("\n4️⃣  TRANSFORMACIÓN (PIPELINE)")
-        print("-" * 60)
-        
-        # Construcción del pipeline
-        print("🔧 Construyendo pipeline de preprocesamiento...")
-        pipeline = build_preprocessing_pipeline(df_optimized)
-        
-        # Aplicación del pipeline
-        print("⚙️  Aplicando transformaciones...")
-        df_processed = pipeline.fit_transform(df_optimized)
-        
-        # Convertir a DataFrame si es necesario (ColumnTransformer puede retornar array)
-        if not isinstance(df_processed, pd.DataFrame):
-            df_processed = pd.DataFrame(df_processed)
-        
-        print(f"✅ Datos transformados: {df_processed.shape[0]} filas × {df_processed.shape[1]} columnas")
-        
-        # Auditar datos procesados
-        audit_processed = audit_dataframe(
-            df_processed,
-            stage_name='processed_output',
-            log_file='outputs/audit_log.json'
-        )
-        
-        # Comparar antes/después
-        print("\n📊 COMPARACIÓN ANTES/DESPUÉS")
-        print("-" * 60)
-        
-        if audit_raw and audit_processed:
-            comparison = compare_audits(audit_raw, audit_processed)
-            if 'error' not in comparison:
-                print(f"  Filas: {audit_raw['shape'][0]} → {audit_processed['shape'][0]}")
-                print(f"  Columnas: {audit_raw['shape'][1]} → {audit_processed['shape'][1]}")
-                print(f"  Nulos totales: {audit_raw['total_nulls']} → {audit_processed['total_nulls']}")
-        
-        # ============ PASO 5: GUARDADO ============
-        print("\n5️⃣  GUARDADO DE RESULTADOS")
-        print("-" * 60)
-        
-        output_path = os.path.join(processed_data_dir, 'processed_data.csv')
-        
-        try:
-            df_processed.to_csv(output_path, index=False, encoding='utf-8')
-            print(f"✅ Datos guardados en: {output_path}")
+            df_processed.to_csv(output_path, index=False)
+            print(f"✅ Archivo generado exitosamente en: {output_path}")
         except Exception as e:
             raise ValueError(f"❌ Error al guardar CSV: {e}")
         
@@ -169,7 +125,7 @@ def main():
         print(f"   • Columnas finales: {df_processed.shape[1]}")
         print("\n✨ ¡Listo para el análisis o modelado!\n")
         
-        return 0  # Éxito
+        return 0
     
     except FileNotFoundError as e:
         print(f"\n❌ ERROR: {e}")
@@ -180,23 +136,10 @@ def main():
         traceback.print_exc()
         return 1
     
-    except IndexError as e:
-        print(f"\n❌ ERROR: No se encontró el archivo CSV esperado")
-        print(f"   Detalles: {e}")
-        return 1
-    
-    except ValueError as e:
-        print(f"\n❌ ERROR DE VALIDACIÓN: {e}")
-        traceback.print_exc()
-        return 1
-    
     except Exception as e:
-        print(f"\n❌ ERROR INESPERADO: {e}")
-        print(f"\n🔍 Tipo: {type(e).__name__}")
+        print(f"\n❌ ERROR FATAL DE EJECUCIÓN: {e}")
         traceback.print_exc()
         return 1
 
-
-if __name__ == '__main__':
-    exit_code = main()
-    sys.exit(exit_code)
+if __name__ == "__main__":
+    sys.exit(main())
