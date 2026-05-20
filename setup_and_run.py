@@ -1,47 +1,36 @@
-import os
-import subprocess
-import sys
-import platform
+import os, subprocess, sys, platform
 
-def run_command(command, shell=True):
-    try:
-        subprocess.check_call(command, shell=shell)
-    except subprocess.CalledProcessError as e:
-        print(f"Error ejecutando: {command}\n{e}")
-        sys.exit(1)
+def create_structure():
+    """Crea la arquitectura modular basada en el repositorio del profesor."""
+    folders = [
+        "data/raw", "data/processed", "docs", "models", "reports",
+        "src/0_audit", "src/1_prep", "src/2_unsupervised", 
+        "src/3_optuna", "src/4_train", "src/5_report"
+    ]
+    for folder in folders:
+        os.makedirs(folder, exist_ok=True)
+        with open(os.path.join(folder, ".gitkeep"), "w") as f: pass
+    print("✅ @env-architect: Estructura modular creada.")
 
-def main():
-    print("🚀 Iniciando configuración de entorno para EDA-ACV...")
+def install_deps():
+    """Instala dependencias optimizadas para entrenamiento pesado."""
+    packages = [
+        "pandas", "numpy", "scikit-learn", "optuna", "xgboost", 
+        "lightgbm", "yellowbrick", "ipykernel", "matplotlib", "seaborn"
+    ]
+    suffix = ".exe" if platform.system() == "Windows" else ""
+    pip = os.path.join("venv", "Scripts" if platform.system() == "Windows" else "bin", f"pip{suffix}")
     
-    # 1. Crear entorno virtual
-    if not os.path.exists("venv"):
-        print("📦 Creando entorno virtual...")
-        run_command(f"{sys.executable} -m venv venv")
-    
-    # 2. Determinar rutas según SO
-    is_windows = platform.system() == "Windows"
-    pip_path = os.path.join("venv", "Scripts", "pip") if is_windows else os.path.join("venv", "bin", "pip")
-    python_path = os.path.join("venv", "Scripts", "python") if is_windows else os.path.join("venv", "bin", "python")
-
-    # 3. Instalar dependencias
-    if os.path.exists("requirements.txt"):
-        print("📥 Instalando dependencias...")
-        run_command(f"{pip_path} install -r requirements.txt")
+    if os.path.exists(pip):
+        print("🏗️ @env-architect: Instalando/Actualizando dependencias de Fase 2...")
+        subprocess.check_call([pip, "install", "--upgrade", "pip"])
+        subprocess.check_call([pip, "install"] + packages)
     else:
-        print("⚠️ No se encontró requirements.txt. Saltando instalación.")
-
-    # 4. Registrar Kernel de Jupyter
-    print("📓 Registrando kernel de Jupyter (env_acv)...")
-    run_command(f"{python_path} -m ipykernel install --user --name=env_acv --display-name 'Python (env_acv)'")
-
-    # 5. Ejecutar proyecto
-    entry_point = "main.py" 
-    if os.path.exists(entry_point):
-        print(f"🏃 Ejecutando {entry_point}...")
-        run_command(f"{python_path} {entry_point}")
-    else:
-        print(f"\n✅ Configuración finalizada con éxito.")
-        print(f"💡 Activar entorno: " + (".\\venv\\Scripts\\Activate.ps1" if is_windows else "source venv/bin/activate"))
+        print("❌ Error: No se encontró venv. Ejecuta de nuevo.")
 
 if __name__ == "__main__":
-    main()
+    create_structure()
+    if not os.path.exists("venv"):
+        subprocess.check_call([sys.executable, "-m", "venv", "venv"])
+    install_deps()
+    print("🚀 PROYECTO LISTO PARA FASE 2.")
