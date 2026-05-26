@@ -1,0 +1,13 @@
+model,actual,predicted,count
+logistic_regression,actual_0,pred_0,721
+logistic_regression,actual_0,pred_1,251
+logistic_regression,actual_1,pred_0,10
+logistic_regression,actual_1,pred_1,40
+svc,actual_0,pred_0,718
+svc,actual_0,pred_1,254
+svc,actual_1,pred_0,12
+svc,actual_1,pred_1,38
+random_forest,actual_0,pred_0,962
+random_forest,actual_0,pred_1,10
+random_forest,actual_1,pred_0,49
+random_forest,actual_1,pred_1,1

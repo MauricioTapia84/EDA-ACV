@@ -1,0 +1,23 @@
+[
+  {
+    "model":"logistic_regression",
+    "precision":0.1374570447,
+    "recall":0.8,
+    "f1":0.2346041056,
+    "roc_auc":0.8432098765
+  },
+  {
+    "model":"svc",
+    "precision":0.1301369863,
+    "recall":0.76,
+    "f1":0.2222222222,
+    "roc_auc":0.7998353909
+  },
+  {
+    "model":"random_forest",
+    "precision":0.0909090909,
+    "recall":0.02,
+    "f1":0.0327868852,
+    "roc_auc":0.7462037037
+  }
+]

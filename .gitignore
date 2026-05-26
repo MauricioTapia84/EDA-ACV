@@ -1,0 +1,14 @@
+# Entorno local
+venv/
+.venv/
+
+# Cache de Python
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Archivos de editor / SO
+.vscode/
+.DS_Store
