@@ -116,3 +116,25 @@ Comandos recomendados:
 - [2026-05-27 13:00:10] @data-orchestrator -> @data-visualizer: Fase 6 Evaluacion final con Test en src/5_report/evaluate.py
 - [2026-05-27 13:00:11] @data-orchestrator: Fase 6 completada correctamente.
 - [2026-05-27 13:00:11] @data-orchestrator: Pipeline Fase 2 finalizado. Solicitar commit a @github-git-agent (Y/n).
+- [2026-05-27 13:21:25] @data-orchestrator: Inicio de ejecucion del pipeline de Fase 2.
+- [2026-05-27 13:21:25] @data-orchestrator -> @data-cleaner: Fase 1 Auditoria y optimizacion de datos en src/0_audit/audit.py
+- [2026-05-27 13:21:30] @data-orchestrator: Fase 1 completada correctamente.
+- [2026-05-27 13:21:30] @data-orchestrator -> @data-cleaner: Fase 2 Preprocesamiento y split Train/Test en src/1_prep/preprocess.py
+- [2026-05-27 13:21:35] @data-orchestrator: Fase 2 completada correctamente.
+- [2026-05-27 13:21:35] @data-orchestrator -> @data-visualizer: Fase 3 Analisis no supervisado (PCA y clustering) en src/2_unsupervised/unsupervised.py
+- [2026-05-27 13:21:44] @data-orchestrator: Fase 3 completada correctamente.
+- [2026-05-27 13:21:44] @data-orchestrator -> @stats-modeler: Fase 4 Ajuste de hiperparametros en src/3_optuna/tune.py
+- [2026-05-27 13:21:53] @data-orchestrator: Fase 4 completada correctamente.
+- [2026-05-27 13:21:53] @data-orchestrator -> @stats-modeler: Fase 5 Entrenamiento final con Train en src/4_train/train.py
+- [2026-05-27 13:21:57] @data-orchestrator: Fase 5 completada correctamente.
+- [2026-05-27 13:21:57] @data-orchestrator -> @data-visualizer: Fase 6 Evaluacion final con Test en src/5_report/evaluate.py
+- [2026-05-27 13:22:01] @data-orchestrator: Fase 6 completada correctamente.
+- [2026-05-27 13:22:01] @data-orchestrator: Pipeline Fase 2 finalizado. Solicitar commit a @github-git-agent (Y/n).
+- [2026-05-27 13:28:00] @data-orchestrator: Analisis documental completado sobre `Análisis Predictivo en Accidentes Cerebrovasculares (1).docx` y `PPT ACV prog. ciencia de datos.pdf`.
+- [2026-05-27 13:28:00] @data-orchestrator: Guia de actualizacion Fase 2 alineada a rubrica generada en `docs/Documentacion/actualizacion_fase2_rubrica.md`.
+- [2026-05-27 13:38:59] @data-orchestrator: Texto final para Word de Fase 2 generado en `docs/Documentacion/texto_final_word_fase2.md`.
+- [2026-05-27 13:38:59] @data-orchestrator: Guion de diapositivas slide-by-slide generado en `docs/Documentacion/guion_diapositivas_fase2.md`.
+- [2026-05-27 13:45:00] @data-orchestrator: Revision de alineacion del informe Word (`Análisis Predictivo en Accidentes Cerebrovasculares (1).docx`) completada contra proyecto y rubrica.
+- [2026-05-27 13:45:00] @data-orchestrator: Diagnostico: informe alineado y en cumplimiento sustantivo; se identifican ajustes menores de consistencia narrativa en seccion de trabajos futuros.
+- [2026-05-27 14:10:00] @data-orchestrator: Documento explicativo exhaustivo del proyecto generado en `docs/Documentacion/guia_exhaustiva_proyecto_acv.md` (arquitectura, flujo, definiciones ML, metricas e interpretacion de resultados).
+- [2026-05-27 14:46:20] @data-orchestrator: Reparto de la presentacion en 3 partes generado en `docs/Documentacion/reparto_presentacion_3_partes.md`.
