@@ -4,7 +4,7 @@ Este script:
 1. Verifica la estructura principal exigida por la rubrica y el progress log.
 2. Crea o reutiliza un entorno virtual.
 3. Instala dependencias desde ``requirements.txt``.
-4. Ejecuta ``main.py`` en modo status, compat o smoke-test.
+4. Ejecuta ``main.py`` en modo status, compat, run o smoke-test.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent
 REQUIREMENTS_FILE = PROJECT_ROOT / "requirements.txt"
 MAIN_SCRIPT = PROJECT_ROOT / "main.py"
-DEFAULT_VENV_NAME = "venv"
+DEFAULT_VENV_NAME = ".venv"
 
 REQUIRED_FOLDERS = (
     "data/raw",
@@ -72,9 +72,6 @@ def ensure_structure() -> StepResult:
         folder = PROJECT_ROOT / rel
         existed = folder.exists()
         folder.mkdir(parents=True, exist_ok=True)
-        gitkeep = folder / ".gitkeep"
-        if not gitkeep.exists():
-            gitkeep.touch()
         if not existed:
             created += 1
 
@@ -157,6 +154,7 @@ def run_main_mode(venv_path: Path, mode: str) -> StepResult:
     mode_flag = {
         "status": "--status",
         "compat": "--compat",
+        "run": "--run",
         "smoke-test": "--smoke-test",
     }[mode]
 
@@ -173,8 +171,8 @@ def collect_observations(mode: str, venv_name: str, steps: list[StepResult]) -> 
     else:
         notes.append("Flujo completado sin errores de setup o ejecucion.")
 
-    if venv_name == "venv":
-        notes.append("Se esta usando 'venv', coherente con el estado actual del repo.")
+    if venv_name == ".venv":
+        notes.append("Se esta usando '.venv', coherente con el estado estable actual del repo.")
     else:
         notes.append("Si cambias a otro entorno virtual, alinea README y comandos del equipo.")
 
@@ -182,6 +180,8 @@ def collect_observations(mode: str, venv_name: str, steps: list[StepResult]) -> 
         notes.append("Modo status: muestra contexto y pendientes sin correr entrenamiento.")
     elif mode == "compat":
         notes.append("Modo compat: util para revisar dependencias y flujo seguro de pull/rebase.")
+    elif mode == "run":
+        notes.append("Modo run: ejecuta el pipeline completo de fases con artefactos en data/processed, models y reports.")
     elif mode == "smoke-test":
         notes.append("Smoke-test: valida integracion supervisada y deja un modelo serializado.")
 
@@ -217,14 +217,14 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Setup y ejecucion unificada para el proyecto ACV")
     parser.add_argument(
         "--mode",
-        choices=["status", "compat", "smoke-test"],
+        choices=["status", "compat", "run", "smoke-test"],
         default="status",
         help="Modo a ejecutar en main.py (default: status).",
     )
     parser.add_argument(
         "--venv-name",
         default=DEFAULT_VENV_NAME,
-        help="Nombre del entorno virtual a usar o crear (default: venv).",
+        help="Nombre del entorno virtual a usar o crear (default: .venv).",
     )
     parser.add_argument(
         "--skip-install",

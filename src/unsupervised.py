@@ -1,106 +1,70 @@
-"""Analisis no supervisado coherente con el flujo actual del proyecto ACV."""
-
 from __future__ import annotations
 
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
 from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_score
-
-from .data_preprocessing import build_unsupervised_matrix, load_raw_dataset
 
 
-def run_unsupervised(
-    input_path: str | Path = "data/raw/healthcare-dataset-stroke-data.csv",
-    output_dir: str | Path = "results/plots",
-) -> pd.DataFrame:
-    """Ejecuta PCA y clustering guardando la evidencia en ``results/plots``."""
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
+def run_unsupervised(random_state: int = 42) -> None:
+    root = Path(__file__).resolve().parents[1]
+    x_train_path = root / "data" / "processed" / "X_train.csv"
+    if not x_train_path.exists():
+        raise FileNotFoundError(
+            "Missing data/processed/X_train.csv. Run preprocess phase first."
+        )
 
-    print("Iniciando analisis no supervisado...")
-    df_raw = load_raw_dataset(input_path)
-    _, X_matrix, _ = build_unsupervised_matrix(df_raw)
+    figure_dir = root / "reports" / "figures"
+    figure_dir.mkdir(parents=True, exist_ok=True)
 
-    print("Calculando PCA para visualizacion...")
-    pca_full = PCA(n_components=0.95, random_state=42)
-    X_pca_full = pca_full.fit_transform(X_matrix)
+    X = pd.read_csv(x_train_path)
+    pca = PCA(n_components=2, random_state=random_state)
+    X_2d = pca.fit_transform(X)
 
-    plt.figure(figsize=(8, 5))
-    plt.plot(np.cumsum(pca_full.explained_variance_ratio_), marker="o")
-    plt.axhline(y=0.95, color="r", linestyle="--")
-    plt.title("Varianza explicada acumulada")
-    plt.xlabel("Numero de componentes")
-    plt.ylabel("Varianza acumulada")
-    plt.savefig(output_path / "pca_variance.png", dpi=150, bbox_inches="tight")
+    kmeans = KMeans(n_clusters=5, random_state=random_state, n_init=10)
+    km_labels = kmeans.fit_predict(X_2d)
+
+    plt.figure(figsize=(7, 5))
+    sns.scatterplot(x=X_2d[:, 0], y=X_2d[:, 1], hue=km_labels, palette="viridis", s=20, legend=False)
+    plt.title("PCA projection with KMeans clusters")
+    plt.xlabel("PC1")
+    plt.ylabel("PC2")
+    plt.tight_layout()
+    plt.savefig(figure_dir / "pca_clusters.png")
     plt.close()
 
-    pca_2d = PCA(n_components=2, random_state=42)
-    X_pca_2d = pca_2d.fit_transform(X_matrix)
+    agglomerative = AgglomerativeClustering(n_clusters=5)
+    agg_labels = agglomerative.fit_predict(X_2d)
+    dbscan = DBSCAN(eps=0.7, min_samples=10)
+    db_labels = dbscan.fit_predict(X_2d)
 
-    inertia = []
-    silhouette_scores = []
-    k_range = range(2, 11)
-    sample_size = min(2000, len(X_pca_full))
-    X_sample = X_pca_full[:sample_size]
-
-    print("Calculando metodo del codo y silueta para K-Means...")
-    for k in k_range:
-        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-        labels = kmeans.fit_predict(X_sample)
-        inertia.append(kmeans.inertia_)
-        silhouette_scores.append(silhouette_score(X_sample, labels))
-
-    results = pd.DataFrame(
+    summary = pd.DataFrame(
         {
-            "k": list(k_range),
-            "inertia": inertia,
-            "silhouette": silhouette_scores,
+            "method": ["kmeans", "agglomerative", "dbscan"],
+            "n_clusters_detected": [
+                len(set(km_labels)),
+                len(set(agg_labels)),
+                len(set(db_labels)) - (1 if -1 in set(db_labels) else 0),
+            ],
         }
     )
 
-    plt.figure(figsize=(8, 5))
-    plt.plot(results["k"], results["inertia"], marker="o", linewidth=2)
-    plt.title("Metodo del codo")
-    plt.xlabel("Numero de clusters (k)")
-    plt.ylabel("Inercia")
-    plt.savefig(output_path / "kmeans_elbow.png", dpi=150, bbox_inches="tight")
-    plt.close()
-
-    plt.figure(figsize=(8, 5))
-    plt.plot(results["k"], results["silhouette"], marker="o", linewidth=2, color="teal")
-    plt.title("Indice de silueta por numero de clusters")
-    plt.xlabel("Numero de clusters (k)")
-    plt.ylabel("Puntuacion de silueta")
-    plt.savefig(output_path / "kmeans_silhouette.png", dpi=150, bbox_inches="tight")
-    plt.close()
-
-    best_k = int(results.sort_values(["silhouette", "inertia"], ascending=[False, True]).iloc[0]["k"])
-
-    print("Generando visualizaciones de clusters...")
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-
-    km = KMeans(n_clusters=best_k, random_state=42, n_init=10).fit(X_pca_2d)
-    sns.scatterplot(x=X_pca_2d[:, 0], y=X_pca_2d[:, 1], hue=km.labels_, palette="viridis", ax=axes[0], legend=False)
-    axes[0].set_title(f"K-Means (k={best_k})")
-
-    sample_2d = X_pca_2d[:sample_size]
-    agg = AgglomerativeClustering(n_clusters=best_k).fit(sample_2d)
-    sns.scatterplot(x=sample_2d[:, 0], y=sample_2d[:, 1], hue=agg.labels_, palette="viridis", ax=axes[1], legend=False)
-    axes[1].set_title("Agrupamiento jerarquico")
-
-    db = DBSCAN(eps=0.5, min_samples=5).fit(sample_2d)
-    sns.scatterplot(x=sample_2d[:, 0], y=sample_2d[:, 1], hue=db.labels_, palette="viridis", ax=axes[2], legend=False)
-    axes[2].set_title("DBSCAN")
-
+    plt.figure(figsize=(7, 4))
+    sns.barplot(data=summary, x="method", y="n_clusters_detected", hue="method", dodge=False, legend=False)
+    plt.title("Clustering summary")
+    plt.ylabel("Detected clusters")
+    plt.xlabel("Method")
     plt.tight_layout()
-    plt.savefig(output_path / "clusters_2d_comparison.png", dpi=150, bbox_inches="tight")
+    plt.savefig(figure_dir / "clustering_summary.png")
     plt.close()
 
-    print(f"Analisis no supervisado finalizado. Graficos en {output_path}/")
-    return results
+    print(f"Unsupervised analysis complete. Figures saved in {figure_dir}")
+
+
+if __name__ == "__main__":
+    run_unsupervised()
