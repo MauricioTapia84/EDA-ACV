@@ -1,8 +1,12 @@
-pandas>=2.0.0
-numpy>=1.24.0
-matplotlib>=3.7.0
-seaborn>=0.12.0
-scikit-learn>=1.3.0
+pandas>=2.2.0,<2.3.0
+numpy>=2.2.0,<2.5.0
+matplotlib>=3.7.0,<3.10.0
+seaborn>=0.12.0,<0.14.0
+scikit-learn>=1.5.0,<1.8.0
+optuna>=3.6.0,<4.0.0
+# Optional for advanced boosting workflows:
+# xgboost>=1.7.0,<3.0.0
+# lightgbm>=4.0.0,<5.0.0
 jupyter>=1.0.0
-notebook>=6.4.0
+notebook>=6.4.0,<8.0.0
 ipykernel>=6.0.0
