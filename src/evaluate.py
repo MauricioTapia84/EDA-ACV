@@ -305,6 +305,14 @@ def run_evaluation() -> None:
     importance_df = _extract_feature_importance(model, feature_names)
     shap_df = _optional_shap_summary(model, X_test)
 
+    feature_names = [str(col) for col in X_test.columns]
+    importance_df = _extract_feature_importance(model, feature_names)
+    importance_df.to_csv(reports_dir / "feature_importance.csv", index=False)
+
+    shap_df = _optional_shap_summary(model, X_test)
+    if shap_df is not None:
+        shap_df.to_csv(reports_dir / "shap_summary.csv", index=False)
+
     report_text = classification_report(y_test, y_pred, digits=4)
     cm_df = confusion_matrix_report(y_test, y_pred)
     roc_auc = float(roc_auc_score(y_test, y_score))

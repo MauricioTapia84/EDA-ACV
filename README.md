@@ -11,7 +11,7 @@ evaluacion que priorice la deteccion de casos positivos de ACV. Por la
 naturaleza del problema y el fuerte desbalance de clases, la defensa tecnica
 prioriza `Recall` y `F1` por sobre una lectura ingenua de `Accuracy`.
 
-## Estructura principal
+## Estructura
 
 - `notebooks/`: capa narrativa del proyecto.
 - `src/`: logica modular reutilizable.
@@ -106,23 +106,30 @@ Ejecutar un chequeo supervisado rapido:
 python setup_and_run.py --mode smoke-test --venv-name venv --skip-install
 ```
 
-Para abrir los notebooks:
+Otros modos utiles:
 
 ```bash
-jupyter notebook
+python setup_and_run.py --mode status --skip-install
+python setup_and_run.py --mode compat --skip-install
 ```
 
-## Dependencias
+## Flujo de notebooks
 
-Instalar con:
+1. `notebooks/01_exploratory_analysis.ipynb`
+2. `notebooks/02_supervised_modeling.ipynb`
+3. `notebooks/03_model_evaluation.ipynb` (alias mantenido desde `3_model_evaluation.ipynb`)
+4. `notebooks/04_hyperparameter_optimization.ipynb`
+5. `notebooks/05_final_analysis.ipynb`
 
-```bash
-pip install -r requirements.txt
-```
+## Componentes tecnicos principales
 
-## Estado actual
+- Preprocesamiento: `src/preprocess.py`, `src/data_preprocessing.py`
+- No supervisado: `src/unsupervised.py`
+- Tuning (incluye Optuna): `src/tune.py`, `src/hyperparameter_tuning.py`
+- Entrenamiento: `src/train.py`, `src/model_training.py`
+- Evaluacion e interpretabilidad: `src/evaluate.py`, `src/model_evaluation.py`
 
-El proyecto ya cuenta con:
+## Evidencia generada
 
 - EDA con PCA y K-Means
 - pipelines supervisados
