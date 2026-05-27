@@ -20,7 +20,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent
 REQUIREMENTS_FILE = PROJECT_ROOT / "requirements.txt"
 MAIN_SCRIPT = PROJECT_ROOT / "main.py"
-DEFAULT_VENV_NAME = ".venv"
+DEFAULT_VENV_NAME = "venv" if (PROJECT_ROOT / "venv").exists() else ".venv"
 
 REQUIRED_FOLDERS = (
     "data/raw",
@@ -171,8 +171,10 @@ def collect_observations(mode: str, venv_name: str, steps: list[StepResult]) -> 
     else:
         notes.append("Flujo completado sin errores de setup o ejecucion.")
 
-    if venv_name == ".venv":
-        notes.append("Se esta usando '.venv', coherente con el estado estable actual del repo.")
+    if venv_name == "venv":
+        notes.append("Se esta usando 'venv', que es el entorno virtual actualmente presente en el repositorio.")
+    elif venv_name == ".venv":
+        notes.append("Se esta usando '.venv', coherente si el equipo decide migrar al nombre oculto.")
     else:
         notes.append("Si cambias a otro entorno virtual, alinea README y comandos del equipo.")
 

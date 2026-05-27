@@ -1,14 +1,37 @@
-# Estructura de fases (0-5)
+# Estructura de `src/`
 
-Este proyecto mantiene los scripts funcionales principales en `src/*.py` y agrega wrappers por fase en subcarpetas para alinearse con la pauta.
+El proyecto convive con dos capas complementarias:
 
-## Mapeo oficial por fase
+## 1. Modulos oficiales de la pauta
 
-- `src/0_audit/audit.py` -> usa `src/preprocess.py` (`run_preprocessing`) para auditoria reproducible.
-- `src/1_prep/preprocess.py` -> usa `src/preprocess.py` para preprocesamiento y split.
-- `src/2_unsupervised/unsupervised.py` -> usa `src/unsupervised.py`.
-- `src/3_optuna/tune.py` -> usa `src/tune.py`.
-- `src/4_train/train.py` -> usa `src/train.py`.
-- `src/5_report/evaluate.py` -> usa `src/evaluate.py`.
+Son los archivos que la rubrica menciona explicitamente y que usan los notebooks narrativos:
 
-El orquestador `main.py` prioriza estos wrappers para ejecutar el pipeline por fase.
+- `data_preprocessing.py`
+- `model_training.py`
+- `model_evaluation.py`
+- `hyperparameter_tuning.py`
+
+## 2. Capa operativa por fases
+
+Permite ejecutar el proyecto de punta a punta desde `setup_and_run.py` y `main.py --run`:
+
+- `0_audit/audit.py`
+- `1_prep/preprocess.py`
+- `2_unsupervised/unsupervised.py`
+- `3_optuna/tune.py`
+- `4_train/train.py`
+- `5_report/evaluate.py`
+
+Estos wrappers delegan en los scripts:
+
+- `preprocess.py`
+- `unsupervised.py`
+- `tune.py`
+- `train.py`
+- `evaluate.py`
+
+## Como leer esta estructura
+
+- Si estas revisando la historia academica del proyecto, mira primero los notebooks y los modulos oficiales.
+- Si estas verificando la ejecucion end-to-end por consola, usa la capa por fases.
+- Ambas capas deben producir una historia consistente sobre el mismo problema: deteccion de ACV con fuerte desbalance de clases.

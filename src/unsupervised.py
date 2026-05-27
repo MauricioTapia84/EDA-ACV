@@ -20,7 +20,9 @@ def run_unsupervised(random_state: int = 42) -> None:
         )
 
     figure_dir = root / "reports" / "figures"
+    results_plot_dir = root / "results" / "plots"
     figure_dir.mkdir(parents=True, exist_ok=True)
+    results_plot_dir.mkdir(parents=True, exist_ok=True)
 
     X = pd.read_csv(x_train_path)
     pca = PCA(n_components=2, random_state=random_state)
@@ -36,6 +38,7 @@ def run_unsupervised(random_state: int = 42) -> None:
     plt.ylabel("PC2")
     plt.tight_layout()
     plt.savefig(figure_dir / "pca_clusters.png")
+    plt.savefig(results_plot_dir / "pca_clusters.png")
     plt.close()
 
     agglomerative = AgglomerativeClustering(n_clusters=5)
@@ -61,9 +64,13 @@ def run_unsupervised(random_state: int = 42) -> None:
     plt.xlabel("Method")
     plt.tight_layout()
     plt.savefig(figure_dir / "clustering_summary.png")
+    plt.savefig(results_plot_dir / "clustering_summary.png")
     plt.close()
 
-    print(f"Unsupervised analysis complete. Figures saved in {figure_dir}")
+    print(
+        "Unsupervised analysis complete. "
+        f"Figures saved in {figure_dir} and {results_plot_dir}"
+    )
 
 
 if __name__ == "__main__":

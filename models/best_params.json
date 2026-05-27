@@ -1,12 +1,12 @@
 {
   "best_model": "logistic_regression",
   "best_params": {
-    "classifier__solver": "liblinear",
+    "classifier__C": 0.01,
+    "classifier__class_weight": "balanced",
     "classifier__penalty": "l2",
-    "classifier__C": 0.0010907785690006091,
-    "classifier__class_weight": "balanced"
+    "classifier__solver": "liblinear"
   },
-  "best_recall": 0.8941655359565807,
-  "best_f1": 0.19340541742936843,
-  "search_method": "OptunaStudy"
+  "best_recall": 0.8340871400572895,
+  "best_f1": 0.21405905789506433,
+  "search_method": "GridSearchCV"
 }

@@ -16,15 +16,24 @@ from typing import Any, Dict, Optional
 import warnings
 
 import numpy as np
-import optuna
 import pandas as pd
-from optuna.samplers import TPESampler
-from optuna.trial import TrialState
 from sklearn.base import clone
 from sklearn.exceptions import ConvergenceWarning, UndefinedMetricWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_validate
 from sklearn.pipeline import Pipeline
+
+try:
+    import optuna
+    from optuna.samplers import TPESampler
+    from optuna.trial import TrialState
+
+    _OPTUNA_AVAILABLE = True
+except Exception:  # pragma: no cover - optional dependency
+    optuna = None  # type: ignore
+    TPESampler = None  # type: ignore
+    TrialState = None  # type: ignore
+    _OPTUNA_AVAILABLE = False
 
 try:
     from xgboost import XGBClassifier  # type: ignore
@@ -381,6 +390,11 @@ def tune_logistic_with_optuna(
 
     The objective prioritizes recall to align with ACV false-negative minimization.
     """
+    if not _OPTUNA_AVAILABLE:
+        raise ImportError(
+            "Optuna no esta disponible en el entorno actual. "
+            "Instala las dependencias o usa el tuning basado en Grid/Random search."
+        )
     _validate_inputs(X, y)
     splitter = cv or build_stratified_kfold(random_state=random_state)
 
@@ -547,15 +561,21 @@ def run_tuning(random_state: int = 42) -> None:
         ]
     )
 
-    _, optuna_summary, optuna_trials_df = tune_logistic_with_optuna(
-        X_train,
-        y_train,
-        cv=cv,
-        random_state=random_state,
-        n_trials=20,
-    )
+    summary_parts = [baseline_summary]
+    if _OPTUNA_AVAILABLE:
+        _, optuna_summary, optuna_trials_df = tune_logistic_with_optuna(
+            X_train,
+            y_train,
+            cv=cv,
+            random_state=random_state,
+            n_trials=20,
+        )
+        summary_parts.append(optuna_summary)
+        optuna_trials_df.to_csv(models_dir / "optuna_study.csv", index=False)
+    else:
+        print("Optuna no esta instalado; se omite la optimizacion adicional y se conserva el tuning base.")
 
-    summary = pd.concat([baseline_summary, optuna_summary], ignore_index=True).sort_values(
+    summary = pd.concat(summary_parts, ignore_index=True).sort_values(
         by=["recall_mean", "f1_mean", "roc_auc_mean"],
         ascending=[False, False, False],
     ).reset_index(drop=True)
@@ -572,7 +592,6 @@ def run_tuning(random_state: int = 42) -> None:
     with (models_dir / "best_params.json").open("w", encoding="utf-8") as fh:
         json.dump(best_payload, fh, indent=2)
 
-    optuna_trials_df.to_csv(models_dir / "optuna_study.csv", index=False)
     summary.to_csv(models_dir / "tuning_comparison.csv", index=False)
     print(f"Tuning complete. Artifacts written to {models_dir}")
 
