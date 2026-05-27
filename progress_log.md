@@ -186,3 +186,47 @@ Nota: Si aparece conflicto en `main.py`, conservar la versión local del orquest
 - [2026-05-27 12:16:06] @data-orchestrator -> @data-visualizer: Fase 6 Evaluacion final con Test en src/5_report/evaluate.py
 - [2026-05-27 12:16:11] @data-orchestrator: Fase 6 completada correctamente.
 - [2026-05-27 12:16:11] @data-orchestrator: Pipeline Fase 2 finalizado. Solicitar commit a @github-git-agent (Y/n).
+- [2026-05-27 12:24:42] @data-orchestrator: Inicio de ejecucion del pipeline de Fase 2.
+- [2026-05-27 12:24:42] @data-orchestrator -> @data-cleaner: Fase 1 Auditoria y optimizacion de datos en src/0_audit/audit.py
+- [2026-05-27 12:24:47] @data-orchestrator: Fase 1 completada correctamente.
+- [2026-05-27 12:24:47] @data-orchestrator -> @data-cleaner: Fase 2 Preprocesamiento y split Train/Test en src/1_prep/preprocess.py
+- [2026-05-27 12:24:52] @data-orchestrator: Fase 2 completada correctamente.
+- [2026-05-27 12:24:52] @data-orchestrator -> @data-visualizer: Fase 3 Analisis no supervisado (PCA y clustering) en src/2_unsupervised/unsupervised.py
+- [2026-05-27 12:25:01] @data-orchestrator: Fase 3 completada correctamente.
+- [2026-05-27 12:25:01] @data-orchestrator -> @stats-modeler: Fase 4 Ajuste de hiperparametros en src/3_optuna/tune.py
+- [2026-05-27 12:25:09] @data-orchestrator: Fase 4 completada correctamente.
+- [2026-05-27 12:25:09] @data-orchestrator -> @stats-modeler: Fase 5 Entrenamiento final con Train en src/4_train/train.py
+- [2026-05-27 12:25:14] @data-orchestrator: Fase 5 completada correctamente.
+- [2026-05-27 12:25:14] @data-orchestrator -> @data-visualizer: Fase 6 Evaluacion final con Test en src/5_report/evaluate.py
+- [2026-05-27 12:25:18] @data-orchestrator: Fase 6 completada correctamente.
+- [2026-05-27 12:25:18] @data-orchestrator: Pipeline Fase 2 finalizado. Solicitar commit a @github-git-agent (Y/n).
+- [2026-05-27 12:33:00] @data-orchestrator: Auditoria de cumplimiento de rubrica realizada: flujo operativo validado con setup_and_run (status/compat/run), brechas documentadas para cierre academico.
+- [2026-05-27 12:45:00] @data-orchestrator: Cierre de brechas aplicado: README coherente, `docs/estructura_proyecto.md` y `docs/verificacion_rubrica_pdf.md` creados, interpretabilidad explicita agregada en evaluacion, narrativa reforzada en notebooks 02/03/05.
+- [2026-05-27 12:33:18] @data-orchestrator: Inicio de ejecucion del pipeline de Fase 2.
+- [2026-05-27 12:33:18] @data-orchestrator -> @data-cleaner: Fase 1 Auditoria y optimizacion de datos en src/0_audit/audit.py
+- [2026-05-27 12:33:22] @data-orchestrator: Fase 1 completada correctamente.
+- [2026-05-27 12:33:22] @data-orchestrator -> @data-cleaner: Fase 2 Preprocesamiento y split Train/Test en src/1_prep/preprocess.py
+- [2026-05-27 12:33:27] @data-orchestrator: Fase 2 completada correctamente.
+- [2026-05-27 12:33:27] @data-orchestrator -> @data-visualizer: Fase 3 Analisis no supervisado (PCA y clustering) en src/2_unsupervised/unsupervised.py
+- [2026-05-27 12:33:36] @data-orchestrator: Fase 3 completada correctamente.
+- [2026-05-27 12:33:36] @data-orchestrator -> @stats-modeler: Fase 4 Ajuste de hiperparametros en src/3_optuna/tune.py
+- [2026-05-27 12:33:45] @data-orchestrator: Fase 4 completada correctamente.
+- [2026-05-27 12:33:45] @data-orchestrator -> @stats-modeler: Fase 5 Entrenamiento final con Train en src/4_train/train.py
+- [2026-05-27 12:33:49] @data-orchestrator: Fase 5 completada correctamente.
+- [2026-05-27 12:33:49] @data-orchestrator -> @data-visualizer: Fase 6 Evaluacion final con Test en src/5_report/evaluate.py
+- [2026-05-27 12:33:53] @data-orchestrator: Fase 6 completada correctamente.
+- [2026-05-27 12:33:53] @data-orchestrator: Pipeline Fase 2 finalizado. Solicitar commit a @github-git-agent (Y/n).
+- [2026-05-27 12:41:51] @data-orchestrator: Inicio de ejecucion del pipeline de Fase 2.
+- [2026-05-27 12:41:51] @data-orchestrator -> @data-cleaner: Fase 1 Auditoria y optimizacion de datos en src/0_audit/audit.py
+- [2026-05-27 12:41:56] @data-orchestrator: Fase 1 completada correctamente.
+- [2026-05-27 12:41:56] @data-orchestrator -> @data-cleaner: Fase 2 Preprocesamiento y split Train/Test en src/1_prep/preprocess.py
+- [2026-05-27 12:42:01] @data-orchestrator: Fase 2 completada correctamente.
+- [2026-05-27 12:42:01] @data-orchestrator -> @data-visualizer: Fase 3 Analisis no supervisado (PCA y clustering) en src/2_unsupervised/unsupervised.py
+- [2026-05-27 12:42:10] @data-orchestrator: Fase 3 completada correctamente.
+- [2026-05-27 12:42:10] @data-orchestrator -> @stats-modeler: Fase 4 Ajuste de hiperparametros en src/3_optuna/tune.py
+- [2026-05-27 12:42:20] @data-orchestrator: Fase 4 completada correctamente.
+- [2026-05-27 12:42:20] @data-orchestrator -> @stats-modeler: Fase 5 Entrenamiento final con Train en src/4_train/train.py
+- [2026-05-27 12:42:24] @data-orchestrator: Fase 5 completada correctamente.
+- [2026-05-27 12:42:24] @data-orchestrator -> @data-visualizer: Fase 6 Evaluacion final con Test en src/5_report/evaluate.py
+- [2026-05-27 12:42:29] @data-orchestrator: Fase 6 completada correctamente.
+- [2026-05-27 12:42:29] @data-orchestrator: Pipeline Fase 2 finalizado. Solicitar commit a @github-git-agent (Y/n).

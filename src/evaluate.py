@@ -226,6 +226,59 @@ def roc_curve_points(y_true, y_score) -> pd.DataFrame:
     return pd.DataFrame({"fpr": fpr, "tpr": tpr, "threshold": thresholds})
 
 
+def _extract_feature_importance(model, feature_names: list[str]) -> pd.DataFrame:
+    """Build a model-agnostic importance table for interpretation."""
+    if hasattr(model, "feature_importances_"):
+        values = np.asarray(model.feature_importances_, dtype=float)
+    elif hasattr(model, "coef_"):
+        coef = np.asarray(model.coef_, dtype=float)
+        values = np.abs(coef[0]) if coef.ndim > 1 else np.abs(coef)
+    else:
+        # Fallback when the estimator does not expose importances.
+        values = np.zeros(len(feature_names), dtype=float)
+
+    if len(values) != len(feature_names):
+        feature_names = [f"feature_{i}" for i in range(len(values))]
+
+    importance_df = pd.DataFrame(
+        {
+            "feature": feature_names,
+            "importance": values,
+        }
+    ).sort_values("importance", ascending=False)
+    return importance_df.reset_index(drop=True)
+
+
+def _optional_shap_summary(model, X: pd.DataFrame) -> Optional[pd.DataFrame]:
+    """Return mean absolute SHAP values when shap is installed, else None."""
+    try:
+        import shap  # type: ignore
+    except Exception:
+        return None
+
+    sample = X.head(min(200, len(X))).copy()
+    if sample.empty:
+        return None
+
+    try:
+        explainer = shap.Explainer(model, sample)
+        shap_values = explainer(sample)
+        values = shap_values.values
+        if values.ndim == 3:
+            # Binary classifier can return shape (n_samples, n_features, n_classes).
+            values = values[:, :, -1]
+        mean_abs = np.abs(values).mean(axis=0)
+        shap_df = pd.DataFrame(
+            {
+                "feature": list(sample.columns),
+                "mean_abs_shap": mean_abs,
+            }
+        ).sort_values("mean_abs_shap", ascending=False)
+        return shap_df.reset_index(drop=True)
+    except Exception:
+        return None
+
+
 def run_evaluation() -> None:
     root = Path(__file__).resolve().parents[1]
     processed_dir = root / "data" / "processed"
@@ -249,6 +302,14 @@ def run_evaluation() -> None:
     y_pred = model.predict(X_test)
     y_score = _get_score_vector(model, X_test)
 
+    feature_names = [str(col) for col in X_test.columns]
+    importance_df = _extract_feature_importance(model, feature_names)
+    importance_df.to_csv(reports_dir / "feature_importance.csv", index=False)
+
+    shap_df = _optional_shap_summary(model, X_test)
+    if shap_df is not None:
+        shap_df.to_csv(reports_dir / "shap_summary.csv", index=False)
+
     report_text = classification_report(y_test, y_pred, digits=4)
     cm_df = confusion_matrix_report(y_test, y_pred)
     roc_auc = float(roc_auc_score(y_test, y_score))
@@ -268,6 +329,23 @@ def run_evaluation() -> None:
             f"- recall: {recall:.4f}",
             f"- f1: {f1:.4f}",
             f"- roc_auc: {roc_auc:.4f}",
+            "",
+            "## Interpretability",
+            "",
+            "Top 10 feature importances:",
+            "",
+            "| feature | importance |",
+            "|---|---:|",
+            *[
+                f"| {row.feature} | {row.importance:.6f} |"
+                for row in importance_df.head(10).itertuples(index=False)
+            ],
+            "",
+            (
+                "SHAP summary exported to `reports/shap_summary.csv`."
+                if shap_df is not None
+                else "SHAP no disponible en el entorno: se omite resumen SHAP."
+            ),
             "",
             "## Confusion Matrix",
             "",
@@ -299,6 +377,7 @@ __all__ = [
     "print_model_comparison_report",
     "confusion_matrix_report",
     "roc_curve_points",
+    "_extract_feature_importance",
     "run_evaluation",
 ]
 

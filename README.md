@@ -1,100 +1,69 @@
 # Proyecto ACV - EP2 SCY1101
 
-Proyecto de analisis y modelado predictivo sobre accidentes cerebrovasculares
-(ACV), organizado segun la estructura pedida en la rubrica del curso.
+Proyecto de analisis y modelado predictivo para deteccion de accidentes
+cerebrovasculares (ACV), alineado a la pauta modular por fases del curso.
 
 ## Objetivo
 
-Analizar el dataset de ACV, desarrollar modelos supervisados y no supervisados,
-comparar su rendimiento con validacion cruzada estratificada y optimizar
-hiperparametros con herramientas permitidas por la rubrica.
+Construir un flujo reproducible de preprocesamiento, modelado, optimizacion y
+evaluacion que priorice el recall de la clase positiva (casos ACV), minimizando
+falsos negativos.
 
-## Estructura principal
+## Estructura
 
-- `notebooks/`: capa narrativa del proyecto.
-- `src/`: logica modular reutilizable.
-- `results/metrics/`: tablas y archivos de metricas.
-- `results/plots/`: graficos generados por los notebooks y scripts.
-- `results/reports/`: espacio para reportes finales.
-- `models/trained_models/`: modelos serializados como evidencia de entrenamiento.
+- `notebooks/`: narrativa de analisis por etapas.
+- `src/`: implementacion modular reutilizable.
+- `src/0_audit` a `src/5_report`: wrappers por fase exigidos por pauta.
+- `data/raw/`: dataset de entrada (inmutable).
+- `data/processed/`: datos generados por el pipeline.
+- `models/`: parametros y modelos serializados.
+- `reports/`: resultados finales y figuras del flujo de ejecucion.
+- `results/`: metricas y graficos de soporte generados en notebooks.
 
-La explicacion detallada de cada modulo esta en
-[docs/estructura_proyecto.md](docs/estructura_proyecto.md).
+Documentacion de estructura: [docs/estructura_proyecto.md](docs/estructura_proyecto.md)
+\nVerificacion contra rubrica PDF: [docs/verificacion_rubrica_pdf.md](docs/verificacion_rubrica_pdf.md)
 
-## Flujo recomendado
+## Ejecucion recomendada
 
-1. Ejecutar `notebooks/01_exploratory_analysis.ipynb`.
-2. Ejecutar `notebooks/02_supervised_modeling.ipynb`.
-3. Ejecutar `notebooks/3_model_evaluation.ipynb`.
-4. Ejecutar `notebooks/04_hyperparameter_optimization.ipynb`.
-5. Completar `notebooks/05_final_analysis.ipynb`.
-
-## Modulos oficiales de `src/`
-
-- `data_preprocessing.py`: limpieza, imputacion, tratamiento de outliers y
-  construccion del preprocesador compartido.
-- `model_training.py`: catalogo de modelos, armado de pipelines y serializacion.
-- `model_evaluation.py`: validacion cruzada estratificada, metricas, ROC y
-  matrices de confusion.
-- `hyperparameter_tuning.py`: grillas y busquedas con `GridSearchCV` y
-  `RandomizedSearchCV`.
-- `unsupervised.py`: PCA y clustering coherentes con el dataset actual del
-  proyecto.
-
-## Datos
-
-- Dataset crudo: `data/raw/healthcare-dataset-stroke-data.csv`
-- Dataset procesado auxiliar: `data/processed/`
-
-El flujo principal actual trabaja desde el dataset crudo y aplica
-preprocesamiento modular desde `src/`.
-
-## Resultados ya disponibles
-
-En `results/` ya existen evidencias generadas del proyecto:
-
-- comparacion de modelos base
-- matrices de confusion
-- curvas ROC
-- comparacion antes y despues del tuning
-- graficos de EDA y clustering
-
-## Modelo serializado
-
-`main.py` ejecuta un chequeo del proyecto y serializa el mejor modelo base en
-`models/trained_models/`.
-
-## Ejecucion rapida
-
-Con el entorno virtual activo:
+Con `.venv` activo:
 
 ```bash
-python main.py
+python setup_and_run.py --mode run --skip-install
 ```
 
-Para abrir los notebooks:
+Otros modos utiles:
 
 ```bash
-jupyter notebook
+python setup_and_run.py --mode status --skip-install
+python setup_and_run.py --mode compat --skip-install
 ```
 
-## Dependencias
+## Flujo de notebooks
 
-Instalar con:
+1. `notebooks/01_exploratory_analysis.ipynb`
+2. `notebooks/02_supervised_modeling.ipynb`
+3. `notebooks/03_model_evaluation.ipynb` (alias mantenido desde `3_model_evaluation.ipynb`)
+4. `notebooks/04_hyperparameter_optimization.ipynb`
+5. `notebooks/05_final_analysis.ipynb`
 
-```bash
-pip install -r requirements.txt
-```
+## Componentes tecnicos principales
 
-## Estado actual
+- Preprocesamiento: `src/preprocess.py`, `src/data_preprocessing.py`
+- No supervisado: `src/unsupervised.py`
+- Tuning (incluye Optuna): `src/tune.py`, `src/hyperparameter_tuning.py`
+- Entrenamiento: `src/train.py`, `src/model_training.py`
+- Evaluacion e interpretabilidad: `src/evaluate.py`, `src/model_evaluation.py`
 
-El proyecto ya cuenta con:
+## Evidencia generada
 
-- EDA con PCA y K-Means
-- pipelines supervisados
-- evaluacion comparativa con `Recall`, `F1` y `ROC-AUC`
-- tuning con metodos permitidos por la rubrica
-- persistencia de metricas, graficos y modelo entrenado
+- Parametros optimos: `models/best_params.json`
+- Estudio Optuna: `models/optuna_study.csv`
+- Modelo final: `models/final_model.pkl`
+- Reporte final: `reports/evaluation_results.md`
+- Importancia de variables: `reports/feature_importance.csv`
 
-La principal tarea pendiente de cierre academico es completar
-`05_final_analysis.ipynb`.
+## Estado
+
+El flujo completo de Fase 2 esta implementado y ejecuta correctamente con el
+launcher oficial. El cierre academico depende de la calidad narrativa final en
+los notebooks y de validar el checklist exacto de la pauta PDF.
