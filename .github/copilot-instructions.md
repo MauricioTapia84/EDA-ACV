@@ -1,28 +1,26 @@
-# Instrucciones Globales de Ciencia de Datos
+# 🎯 Reglas de Operación - Fase 2 (Modelado)
 
-## Stack Tecnológico
-- Lenguaje: Python 3.x
-- Librerías: pandas, numpy, scikit-learn, optuna, xgboost, lightgbm, matplotlib, seaborn, yellowbrick.
+## 🧬 Contexto y Referencia
+Este proyecto sigue la metodología modular de [codon-classification-pipeline](https://github.com/trigoduoc/codon-classification-pipeline). Todo el desarrollo debe alinearse con la estructura de 6 fases (0-5).
 
-## Políticas de Manejo de Datos
-- **Inmutabilidad**: NUNCA modificar archivos en \`data/raw/\`.
-- **Estructura**: Siempre crear versiones procesadas en \`data/processed/\`.
+## 🤖 Roles de Agente
+Consulta [.github/AGENTS.md](.github/AGENTS.md) para identificar qué agente debe realizar cada tarea. No ignores los límites de responsabilidad de cada rol.
 
-## Reglas Globales (Fase 2)
-- Seguir la estructura modular de: https://github.com/trigoduoc/codon-classification-pipeline
-- Consultar siempre \`AGENTS.md\` para saber qué agente debe realizar cada tarea.
-- **Flujo de Trabajo**: Todo script nuevo debe ir dentro de su subcarpeta correspondiente en \`src/\`.
+## 📁 Estructura del Código
+- **`src/`**: Dividido en subcarpetas numeradas por fase (`0_audit` a `5_report`).
+- **Scripts**: Cada fase debe tener un script orquestador o notebook de ejecución.
+- **Data**: 
+  - `data/raw/`: INMUTABLE. No abrir para escritura.
+  - `data/processed/`: Salida de procesos de limpieza y transformación.
 
-# 🎯 Reglas de Operación - Proyecto EDA-ACV
+## 🛠 Stack Tecnológico
+- **Core**: Python 3.x, pandas, scikit-learn.
+- **Modelado**: xgboost, lightgbm, optuna.
+- **Visualización**: matplotlib, seaborn, yellowbrick.
 
-## 🧬 Contexto de Continuidad
-- Estamos en la **Fase 2 (Modelado)**.
-- Referencia Técnica: https://github.com/trigoduoc/codon-classification-pipeline
+## 🚀 Comandos Críticos
+- Inicializar estructura: `python3 setup_and_run.py`
+- Instalación: `pip install -r requirements.txt`
 
-## 🤖 Uso de Agentes
-Para cada tarea, utiliza el agente definido en \`AGENTS.md\`:
-- Setup/Estructura -> **@env-architect**
-- Auditoría Datos -> **@eda-auditor**
-- Clustering/PCA -> **@unsupervised-modeler**
-- Optuna/XGBoost -> **@hyperparameter-optimizer**
-- Docs/Reportes -> **@report-generator**
+## 👥 Definiciones Detalladas
+Los perfiles de agentes individuales se encuentran en [.github/agents/](.github/agents/).
