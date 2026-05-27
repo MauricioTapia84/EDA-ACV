@@ -25,25 +25,6 @@ Top 10 feature importances:
 
 SHAP no disponible en el entorno: se omite resumen SHAP.
 
-## Interpretability
-
-Top 10 feature importances:
-
-| feature | importance |
-|---|---:|
-| 0 | 0.571664 |
-| 3 | 0.160281 |
-| 8 | 0.104177 |
-| 15 | 0.068778 |
-| 18 | 0.063949 |
-| 19 | 0.057184 |
-| 5 | 0.055728 |
-| 14 | 0.053992 |
-| 12 | 0.050606 |
-| 6 | 0.035892 |
-
-SHAP no disponible en el entorno: se omite resumen SHAP.
-
 ## Confusion Matrix
 
 |       | pred_0 | pred_1 |
