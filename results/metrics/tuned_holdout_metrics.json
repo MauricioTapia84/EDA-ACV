@@ -1,12 +1,5 @@
 [
   {
-    "model":"random_forest",
-    "precision":0.1079691517,
-    "recall":0.84,
-    "f1":0.1913439636,
-    "roc_auc":0.8241769547
-  },
-  {
     "model":"logistic_regression",
     "precision":0.1339869281,
     "recall":0.82,
@@ -15,9 +8,16 @@
   },
   {
     "model":"svc",
-    "precision":0.1307189542,
-    "recall":0.8,
-    "f1":0.2247191011,
-    "roc_auc":0.8390946502
+    "precision":0.1234177215,
+    "recall":0.78,
+    "f1":0.2131147541,
+    "roc_auc":0.8253292181
+  },
+  {
+    "model":"random_forest",
+    "precision":0.1203703704,
+    "recall":0.78,
+    "f1":0.2085561497,
+    "roc_auc":0.8190740741
   }
 ]

@@ -1,7 +1,25 @@
-"""Public exports for the project's source package."""
+"""Exportaciones publicas del paquete ``src`` del proyecto."""
 
-from .preprocess import OutlierCapper, SmartImputer, UnknownToNaN
-from .evaluate import (
+from .data_preprocessing import (
+    OutlierCapper,
+    SmartImputer,
+    UnknownToNaN,
+    build_feature_preprocessor,
+    build_unsupervised_matrix,
+    load_raw_dataset,
+    split_features_target,
+)
+from .hyperparameter_tuning import (
+    build_search_object,
+    get_best_estimators,
+    get_default_search_plan,
+    get_tuned_model_registry,
+    print_tuning_summary,
+    tune_all_models,
+    tune_model,
+)
+from .model_evaluation import (
+    CV_SCORING,
     build_cross_validation_report,
     build_stratified_kfold,
     confusion_matrix_report,
@@ -10,20 +28,27 @@ from .evaluate import (
     print_model_comparison_report,
     roc_curve_points,
 )
-from .train import (
+from .model_training import (
     ModelSpec,
     build_logistic_regression,
+    build_model_pipelines,
     build_random_forest,
     build_svc,
     build_xgboost,
+    fit_and_serialize_model,
     get_model_registry,
     get_model_specifications,
+    serialize_trained_model,
 )
 
 __all__ = [
     "UnknownToNaN",
     "SmartImputer",
     "OutlierCapper",
+    "load_raw_dataset",
+    "split_features_target",
+    "build_feature_preprocessor",
+    "build_unsupervised_matrix",
     "ModelSpec",
     "build_logistic_regression",
     "build_random_forest",
@@ -31,6 +56,10 @@ __all__ = [
     "build_xgboost",
     "get_model_registry",
     "get_model_specifications",
+    "build_model_pipelines",
+    "serialize_trained_model",
+    "fit_and_serialize_model",
+    "CV_SCORING",
     "build_stratified_kfold",
     "evaluate_model_cv",
     "build_cross_validation_report",
@@ -38,4 +67,11 @@ __all__ = [
     "print_model_comparison_report",
     "confusion_matrix_report",
     "roc_curve_points",
+    "get_default_search_plan",
+    "build_search_object",
+    "tune_model",
+    "tune_all_models",
+    "print_tuning_summary",
+    "get_best_estimators",
+    "get_tuned_model_registry",
 ]

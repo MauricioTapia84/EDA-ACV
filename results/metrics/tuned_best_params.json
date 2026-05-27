@@ -6,18 +6,19 @@
     "classifier__solver": "liblinear"
   },
   "random_forest": {
-    "classifier__n_estimators": 900,
-    "classifier__min_samples_split": 2,
-    "classifier__min_samples_leaf": 4,
-    "classifier__max_features": null,
-    "classifier__max_depth": 3,
+    "classifier__n_estimators": 200,
+    "classifier__min_samples_split": 5,
+    "classifier__min_samples_leaf": 2,
+    "classifier__max_features": "sqrt",
+    "classifier__max_depth": 5,
     "classifier__criterion": "gini",
-    "classifier__class_weight": "balanced",
-    "classifier__bootstrap": false
+    "classifier__class_weight": "balanced_subsample",
+    "classifier__bootstrap": true
   },
   "svc": {
-    "classifier__kernel": "linear",
+    "classifier__kernel": "rbf",
+    "classifier__gamma": "auto",
     "classifier__class_weight": "balanced",
-    "classifier__C": 100
+    "classifier__C": 1
   }
 }

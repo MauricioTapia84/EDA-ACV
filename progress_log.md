@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # 🚀 Bitácora de Progreso - Fase 2: Modelado
 
 Este documento registra el progreso del proyecto ACV siguiendo la estructura modular del repositorio de referencia.
@@ -90,3 +91,49 @@ Nota: Si aparece conflicto en `main.py`, conservar la versión local del orquest
 - [Pendiente] @stats-modeler: Ajuste de hiperparámetros en `src/tune.py` (objetivo recall).
 - [Pendiente] @stats-modeler: Entrenamiento final y exportación de modelo en `src/train.py`.
 - [Pendiente] @data-visualizer: Visualizaciones de `src/unsupervised.py` y `src/evaluate.py`.
+=======
+# Registro de Progreso - Proyecto ACV (Fase 2)
+
+## Hitos completados
+- Se alineo la estructura principal del repositorio con la rubrica: `notebooks/`, `src/`, `models/trained_models/` y `results/`.
+- Se consolidaron los modulos oficiales de la rubrica como capa principal:
+  - `src/data_preprocessing.py`
+  - `src/model_training.py`
+  - `src/model_evaluation.py`
+  - `src/hyperparameter_tuning.py`
+- Los archivos `preprocess.py`, `train.py`, `evaluate.py` y `tune.py` quedaron como compatibilidad hacia atras para no romper imports previos.
+- Se implementaron los transformers reutilizables `UnknownToNaN`, `SmartImputer` y `OutlierCapper`.
+- Se implemento el catalogo de modelos base con `LogisticRegression`, `RandomForest`, `SVC` y soporte opcional para `XGBoost`.
+- Se implemento evaluacion con `StratifiedKFold`, `Precision`, `Recall`, `F1` y `ROC-AUC`.
+- Se implemento tuning con `GridSearchCV` y `RandomizedSearchCV`, alineado con la rubrica.
+- Se dejaron operativos los notebooks `01` a `04` con EDA, PCA, K-Means, pipelines supervisados, evaluacion comparativa y tuning.
+- Se adapto `src/unsupervised.py` al flujo real del proyecto para que use el dataset crudo actual y guarde evidencia en `results/plots/`.
+- Se actualizo `README.md` y `docs/estructura_proyecto.md` para que reflejen el estado real del repositorio.
+- Se serializo un modelo entrenado real en `models/trained_models/`:
+  - `logistic_regression_baseline_pipeline.joblib`
+  - `logistic_regression_baseline_pipeline.json`
+
+## Estado actual
+- El punto de entrada `main.py` soporta:
+  - `--status`
+  - `--compat`
+  - `--smoke-test`
+- `setup_and_run.py` valida estructura, entorno virtual, dependencias y ejecucion por modo.
+- `results/metrics/` y `results/plots/` contienen evidencia real generada por los notebooks y scripts.
+
+## Hallazgos tecnicos importantes
+- La variable objetivo `stroke` es binaria, por lo que `LogisticRegression` si corresponde como modelo de clasificacion.
+- El rendimiento no es fuerte en `Precision`, pero si es razonable en `Recall`, lo que es consistente con el desbalance del dataset.
+- El mejor baseline actual por criterio de `Recall` sigue siendo `logistic_regression`.
+
+## Siguiente paso recomendado
+- Completar `notebooks/05_final_analysis.ipynb` con:
+  - resumen de hallazgos del EDA
+  - justificacion del mejor modelo
+  - comparacion baseline vs tuned
+  - interpretacion de `Recall`, `F1` y `ROC-AUC`
+  - conclusion tecnica final
+
+## Actividad reciente
+- [actualizado] Se sincronizo este progress log con el estado real del proyecto para que `main.py --status` muestre contexto util de continuidad.
+>>>>>>> Stashed changes

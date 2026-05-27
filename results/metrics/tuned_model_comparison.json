@@ -3,51 +3,52 @@
     "model":"logistic_regression",
     "search_type":"GridSearchCV",
     "refit_metric":"recall",
-    "best_score":0.8189387755,
+    "best_score":0.8313253012,
     "best_params":{
       "classifier__C":0.01,
       "classifier__class_weight":"balanced",
       "classifier__penalty":"l2",
       "classifier__solver":"liblinear"
     },
-    "precision_mean":0.1257679327,
-    "recall_mean":0.8189387755,
-    "f1_mean":0.218025171,
-    "roc_auc_mean":0.8345345093
+    "precision_mean":0.1262616975,
+    "recall_mean":0.8313253012,
+    "f1_mean":0.2192116678,
+    "roc_auc_mean":0.8363733913
   },
   {
     "model":"svc",
     "search_type":"RandomizedSearchCV",
     "refit_metric":"f1",
-    "best_score":0.2210144731,
+    "best_score":0.2236354803,
     "best_params":{
-      "classifier__kernel":"linear",
+      "classifier__kernel":"rbf",
+      "classifier__gamma":"auto",
       "classifier__class_weight":"balanced",
-      "classifier__C":100
+      "classifier__C":1
     },
-    "precision_mean":0.1279540002,
-    "recall_mean":0.8109387755,
-    "f1_mean":0.2210144731,
-    "roc_auc_mean":0.8344991669
+    "precision_mean":0.1297286891,
+    "recall_mean":0.8112449799,
+    "f1_mean":0.2236354803,
+    "roc_auc_mean":0.8289869465
   },
   {
     "model":"random_forest",
     "search_type":"RandomizedSearchCV",
     "refit_metric":"f1",
-    "best_score":0.2181758353,
+    "best_score":0.2231010792,
     "best_params":{
-      "classifier__n_estimators":900,
-      "classifier__min_samples_split":2,
-      "classifier__min_samples_leaf":4,
-      "classifier__max_features":null,
-      "classifier__max_depth":3,
+      "classifier__n_estimators":200,
+      "classifier__min_samples_split":5,
+      "classifier__min_samples_leaf":2,
+      "classifier__max_features":"sqrt",
+      "classifier__max_depth":5,
       "classifier__criterion":"gini",
-      "classifier__class_weight":"balanced",
-      "classifier__bootstrap":false
+      "classifier__class_weight":"balanced_subsample",
+      "classifier__bootstrap":true
     },
-    "precision_mean":0.1267338815,
-    "recall_mean":0.7987755102,
-    "f1_mean":0.2181758353,
-    "roc_auc_mean":0.8107370446
+    "precision_mean":0.1307792744,
+    "recall_mean":0.7630522088,
+    "f1_mean":0.2231010792,
+    "roc_auc_mean":0.8260198607
   }
 ]

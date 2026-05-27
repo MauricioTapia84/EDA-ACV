@@ -1,84 +1,106 @@
-import pandas as pd
-import numpy as np
+"""Analisis no supervisado coherente con el flujo actual del proyecto ACV."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-import os
-import joblib
+from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
 from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
 from sklearn.metrics import silhouette_score
 
-def run_unsupervised():
-    print("Iniciando Análisis No Supervisado...")
-    os.makedirs("outputs/figures", exist_ok=True)
-    
-   
-    X = pd.read_csv("data/processed/X_train.csv").values
+from .data_preprocessing import build_unsupervised_matrix, load_raw_dataset
 
-    # 1. Calculamos el PCA 
-    print("Calculando PCA para visualización...")
-    pca = PCA(n_components=0.95, random_state=42)
-    X_pca = pca.fit_transform(X)
-    
-    # Gráfico de Varianza Explicada
+
+def run_unsupervised(
+    input_path: str | Path = "data/raw/healthcare-dataset-stroke-data.csv",
+    output_dir: str | Path = "results/plots",
+) -> pd.DataFrame:
+    """Ejecuta PCA y clustering guardando la evidencia en ``results/plots``."""
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print("Iniciando analisis no supervisado...")
+    df_raw = load_raw_dataset(input_path)
+    _, X_matrix, _ = build_unsupervised_matrix(df_raw)
+
+    print("Calculando PCA para visualizacion...")
+    pca_full = PCA(n_components=0.95, random_state=42)
+    X_pca_full = pca_full.fit_transform(X_matrix)
+
     plt.figure(figsize=(8, 5))
-    plt.plot(np.cumsum(pca.explained_variance_ratio_), marker='o')
-    plt.axhline(y=0.95, color='r', linestyle='--')
-    plt.title("Varianza Explicada Acumulada")
-    plt.xlabel("Número de Componentes")
-    plt.ylabel("Varianza Acumulada")
-    plt.savefig("outputs/figures/pca_variance.png")
+    plt.plot(np.cumsum(pca_full.explained_variance_ratio_), marker="o")
+    plt.axhline(y=0.95, color="r", linestyle="--")
+    plt.title("Varianza explicada acumulada")
+    plt.xlabel("Numero de componentes")
+    plt.ylabel("Varianza acumulada")
+    plt.savefig(output_path / "pca_variance.png", dpi=150, bbox_inches="tight")
     plt.close()
 
-    # Reducimos a 2D para visualización
-    X_pca_2d = X[:, :2] 
+    pca_2d = PCA(n_components=2, random_state=42)
+    X_pca_2d = pca_2d.fit_transform(X_matrix)
 
-    # 2. Método del Codo y Silueta (K-Means)
     inertia = []
-    sil_scores = []
-    K_range = range(2, 11)
-    
-    # Usamos una muestra pequeña para que silueta no demore horas
-    X_sample = X[:2000] 
-    
-    print("Calculando Codo y Silueta para K-Means...")
-    for k in K_range:
+    silhouette_scores = []
+    k_range = range(2, 11)
+    sample_size = min(2000, len(X_pca_full))
+    X_sample = X_pca_full[:sample_size]
+
+    print("Calculando metodo del codo y silueta para K-Means...")
+    for k in k_range:
         kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-        kmeans.fit(X_sample)
+        labels = kmeans.fit_predict(X_sample)
         inertia.append(kmeans.inertia_)
-        sil_scores.append(silhouette_score(X_sample, kmeans.labels_))
-        
-    fig, ax1 = plt.subplots(figsize=(8, 5))
-    ax1.plot(K_range, inertia, 'b-o')
-    ax1.set_xlabel('Número de Clusters (k)')
-    ax1.set_ylabel('Inercia', color='b')
-    ax2 = ax1.twinx()
-    ax2.plot(K_range, sil_scores, 'r-o')
-    ax2.set_ylabel('Puntuación Silueta', color='r')
-    plt.title("Método del Codo y Silueta")
-    plt.savefig("outputs/figures/kmeans_elbow_silhouette.png")
+        silhouette_scores.append(silhouette_score(X_sample, labels))
+
+    results = pd.DataFrame(
+        {
+            "k": list(k_range),
+            "inertia": inertia,
+            "silhouette": silhouette_scores,
+        }
+    )
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(results["k"], results["inertia"], marker="o", linewidth=2)
+    plt.title("Metodo del codo")
+    plt.xlabel("Numero de clusters (k)")
+    plt.ylabel("Inercia")
+    plt.savefig(output_path / "kmeans_elbow.png", dpi=150, bbox_inches="tight")
     plt.close()
 
-    # 3. Clustering Visualizations
+    plt.figure(figsize=(8, 5))
+    plt.plot(results["k"], results["silhouette"], marker="o", linewidth=2, color="teal")
+    plt.title("Indice de silueta por numero de clusters")
+    plt.xlabel("Numero de clusters (k)")
+    plt.ylabel("Puntuacion de silueta")
+    plt.savefig(output_path / "kmeans_silhouette.png", dpi=150, bbox_inches="tight")
+    plt.close()
+
+    best_k = int(results.sort_values(["silhouette", "inertia"], ascending=[False, True]).iloc[0]["k"])
+
     print("Generando visualizaciones de clusters...")
     fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-    
-    # K-Means (Asumiendo 5 clusters por ejemplo visual)
-    km = KMeans(n_clusters=5, random_state=42, n_init=10).fit(X_pca_2d)
-    sns.scatterplot(x=X_pca_2d[:,0], y=X_pca_2d[:,1], hue=km.labels_, palette="viridis", ax=axes[0])
-    axes[0].set_title("K-Means (k=5)")
-    
-    # Jerárquico
-    agg = AgglomerativeClustering(n_clusters=5).fit(X_pca_2d[:2000]) # Muestra para evitar OOM
-    sns.scatterplot(x=X_pca_2d[:2000,0], y=X_pca_2d[:2000,1], hue=agg.labels_, palette="viridis", ax=axes[1])
-    axes[1].set_title("Hierarchical Clustering")
-    
-    # DBSCAN
-    db = DBSCAN(eps=0.5, min_samples=5).fit(X_pca_2d)
-    sns.scatterplot(x=X_pca_2d[:,0], y=X_pca_2d[:,1], hue=db.labels_, palette="viridis", ax=axes[2])
+
+    km = KMeans(n_clusters=best_k, random_state=42, n_init=10).fit(X_pca_2d)
+    sns.scatterplot(x=X_pca_2d[:, 0], y=X_pca_2d[:, 1], hue=km.labels_, palette="viridis", ax=axes[0], legend=False)
+    axes[0].set_title(f"K-Means (k={best_k})")
+
+    sample_2d = X_pca_2d[:sample_size]
+    agg = AgglomerativeClustering(n_clusters=best_k).fit(sample_2d)
+    sns.scatterplot(x=sample_2d[:, 0], y=sample_2d[:, 1], hue=agg.labels_, palette="viridis", ax=axes[1], legend=False)
+    axes[1].set_title("Agrupamiento jerarquico")
+
+    db = DBSCAN(eps=0.5, min_samples=5).fit(sample_2d)
+    sns.scatterplot(x=sample_2d[:, 0], y=sample_2d[:, 1], hue=db.labels_, palette="viridis", ax=axes[2], legend=False)
     axes[2].set_title("DBSCAN")
-    
+
     plt.tight_layout()
-    plt.savefig("outputs/figures/clusters_2d_comparison.png")
+    plt.savefig(output_path / "clusters_2d_comparison.png", dpi=150, bbox_inches="tight")
     plt.close()
-    print("Análisis No Supervisado Finalizado. Gráficos en outputs/figures/")
+
+    print(f"Analisis no supervisado finalizado. Graficos en {output_path}/")
+    return results

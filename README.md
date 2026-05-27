@@ -1,62 +1,100 @@
-# EDA-ACV
-Análisis exploratorio de datos de accidentes cerebrovascular y su probabilidad de que un paciente lo padezca
+# Proyecto ACV - EP2 SCY1101
 
-## 🚀 Configuración Automática (Recomendado)
+Proyecto de analisis y modelado predictivo sobre accidentes cerebrovasculares
+(ACV), organizado segun la estructura pedida en la rubrica del curso.
 
-Para configurar el entorno virtual, instalar dependencias y registrar el kernel de Jupyter de forma automática en **Windows, Linux o macOS**, ejecuta:
+## Objetivo
+
+Analizar el dataset de ACV, desarrollar modelos supervisados y no supervisados,
+comparar su rendimiento con validacion cruzada estratificada y optimizar
+hiperparametros con herramientas permitidas por la rubrica.
+
+## Estructura principal
+
+- `notebooks/`: capa narrativa del proyecto.
+- `src/`: logica modular reutilizable.
+- `results/metrics/`: tablas y archivos de metricas.
+- `results/plots/`: graficos generados por los notebooks y scripts.
+- `results/reports/`: espacio para reportes finales.
+- `models/trained_models/`: modelos serializados como evidencia de entrenamiento.
+
+La explicacion detallada de cada modulo esta en
+[docs/estructura_proyecto.md](docs/estructura_proyecto.md).
+
+## Flujo recomendado
+
+1. Ejecutar `notebooks/01_exploratory_analysis.ipynb`.
+2. Ejecutar `notebooks/02_supervised_modeling.ipynb`.
+3. Ejecutar `notebooks/3_model_evaluation.ipynb`.
+4. Ejecutar `notebooks/04_hyperparameter_optimization.ipynb`.
+5. Completar `notebooks/05_final_analysis.ipynb`.
+
+## Modulos oficiales de `src/`
+
+- `data_preprocessing.py`: limpieza, imputacion, tratamiento de outliers y
+  construccion del preprocesador compartido.
+- `model_training.py`: catalogo de modelos, armado de pipelines y serializacion.
+- `model_evaluation.py`: validacion cruzada estratificada, metricas, ROC y
+  matrices de confusion.
+- `hyperparameter_tuning.py`: grillas y busquedas con `GridSearchCV` y
+  `RandomizedSearchCV`.
+- `unsupervised.py`: PCA y clustering coherentes con el dataset actual del
+  proyecto.
+
+## Datos
+
+- Dataset crudo: `data/raw/healthcare-dataset-stroke-data.csv`
+- Dataset procesado auxiliar: `data/processed/`
+
+El flujo principal actual trabaja desde el dataset crudo y aplica
+preprocesamiento modular desde `src/`.
+
+## Resultados ya disponibles
+
+En `results/` ya existen evidencias generadas del proyecto:
+
+- comparacion de modelos base
+- matrices de confusion
+- curvas ROC
+- comparacion antes y despues del tuning
+- graficos de EDA y clustering
+
+## Modelo serializado
+
+`main.py` ejecuta un chequeo del proyecto y serializa el mejor modelo base en
+`models/trained_models/`.
+
+## Ejecucion rapida
+
+Con el entorno virtual activo:
 
 ```bash
-python3 setup_and_run.py
+python main.py
+```
 
-## Configuración del Entorno Virtual
+Para abrir los notebooks:
 
-Para aislar las dependencias de este análisis EDA y asegurar que el código funcione correctamente en cualquier máquina sin conflictos de versiones, es indispensable la creación de un entorno virtual.
+```bash
+jupyter notebook
+```
 
-### Instrucciones para replicar el entorno (Windows - PowerShell)
+## Dependencias
 
-1. **Abre tu terminal (PowerShell) y navega a la raíz del proyecto `EDA-ACV`:**
-   ```powershell
-   cd (ruta_a_tu_proyecto)/EDA-ACV
-   ```
+Instalar con:
 
-2. **Crea el entorno virtual usando el módulo incorporado de Python (`venv`):**
-   ```powershell
-   sudo apt update
-   sudo apt install python3-venvF
-   python3 -m venv venv
-   ```
-   *Esto creará una carpeta llamada `venv` que contiene los binarios de python aislados.*
+```bash
+pip install -r requirements.txt
+```
 
-3. **Activar el entorno virtual:**
-   ```powershell
-   .\venv\Scripts\Activate.ps1
-   ```
-   *(Nota: Si recibes un error sobre permisos al ejecutar scripts, corre este comando primero como Administrador o simplemente en tu sesión: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`)*
+## Estado actual
 
-4. **Instalar los paquetes requeridos desde `requirements.txt`:**
-   Con el entorno activado (verás `(venv)` al inicio de tu prompt en la terminal), ejecuta:
-   ```powershell
-   pip install -r requirements.txt
-   ```
+El proyecto ya cuenta con:
 
-5. **Añadir el entorno a Jupyter (Kernel):**
-   Para asegurarte de que tu Notebook use el kernel correcto con las librerías instaladas:
-   ```powershell
-   python -m ipykernel install --user --name=env_acv --display-name "Python (env_acv)"
-   ```
-   *(Luego, en Jupyter Notebook, debes asegurarte de seleccionar el kernel de nombre "Python (env_acv)").*
+- EDA con PCA y K-Means
+- pipelines supervisados
+- evaluacion comparativa con `Recall`, `F1` y `ROC-AUC`
+- tuning con metodos permitidos por la rubrica
+- persistencia de metricas, graficos y modelo entrenado
 
-### Si usas Conda (Alternativa Anaconda/Miniconda)
-
-1. Crear el entorno:
-   ```bash
-   conda create --name env_acv python=3.10
-   ```
-2. Activar entorno:
-   ```bash
-   conda activate env_acv
-   ```
-3. Instalar librerías:
-   ```bash
-   pip install -r requirements.txt
-   ```
+La principal tarea pendiente de cierre academico es completar
+`05_final_analysis.ipynb`.

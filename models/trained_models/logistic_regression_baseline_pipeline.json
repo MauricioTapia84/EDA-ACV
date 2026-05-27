@@ -1,0 +1,11 @@
+{
+  "model_name": "logistic_regression",
+  "source": "main.py",
+  "selection_criteria": [
+    "recall_mean",
+    "f1_mean",
+    "roc_auc_mean",
+    "precision_mean"
+  ],
+  "dataset": "data/raw/healthcare-dataset-stroke-data.csv"
+}
