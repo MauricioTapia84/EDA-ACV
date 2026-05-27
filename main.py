@@ -1,145 +1,119 @@
-"""
-Main orchestrator for the ETL (Extract, Transform, Load) pipeline.
+"""Live smoke test for the ACV project.
 
-This module executes the complete flow:
-1. AUDIT: Verifies data integrity.
-2. LOAD: Searches for and loads the raw CSV data.
-3. OPTIMIZATION: Reduces memory footprint using downcasting techniques.
-4. TRANSFORMATION: Applies the preprocessing pipeline.
-5. SAVE: Exports the clean dataset to the processed folder.
+This entry point validates the current project structure by:
+1. Loading the raw dataset.
+2. Building the shared preprocessing pipeline.
+3. Evaluating the baseline supervised models with stratified cross-validation.
+4. Reporting the best model by Recall/F1.
 
-Usage:
-    python main.py
+The notebooks remain the primary narrative layer, but this script gives us a
+single executable check that the modular pieces still work together.
 """
 
-import os
+from __future__ import annotations
+
 import sys
-import pandas as pd
-import traceback
 from pathlib import Path
 
-# Imports locales del proyecto
-from src.audit import audit_dataframe, compare_audits
-from src.optimization import optimize_memory
-from src.pipeline import build_preprocessing_pipeline
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+from src.data_preprocessing import OutlierCapper, SmartImputer, UnknownToNaN
+from src.model_evaluation import build_stratified_kfold, print_model_comparison_report
+from src.model_training import get_model_registry
 
 
-def find_csv_file(raw_data_dir: str) -> str:
-    """
-    Searches for and returns the path to the first CSV file in the specified directory.
-    
-    Parameters
-    ----------
-    raw_data_dir : str
-        Path to the directory containing raw data.
-    
-    Returns
-    -------
-    str
-        Complete path to the located CSV file.
-    
-    Raises
-    ------
-    FileNotFoundError
-        If no CSV files are found in the directory.
-    """
-    csv_files = list(Path(raw_data_dir).glob('*.csv'))
-    
-    # Busca automáticamente el archivo para no depender de nombres rígidos (Hardcoding)
-    if not csv_files:
-        raise FileNotFoundError(f"❌ No se encontraron archivos CSV en {raw_data_dir}")
-    
-    csv_path = str(csv_files[0])
-    print(f"📁 CSV encontrado: {csv_path}")
-    return csv_path
+def build_feature_preprocessor(X_raw: pd.DataFrame) -> Pipeline:
+    """Create the shared preprocessing pipeline used by the notebooks."""
+    numeric_features = X_raw.select_dtypes(
+        include=["int64", "float64", "int32", "float32"]
+    ).columns.tolist()
+    categorical_features = X_raw.select_dtypes(
+        include=["object", "string", "category", "bool"]
+    ).columns.tolist()
+
+    return Pipeline(
+        [
+            ("unknown_to_nan", UnknownToNaN(columns=categorical_features)),
+            ("smart_imputer", SmartImputer()),
+            ("outlier_capper", OutlierCapper(columns=numeric_features)),
+            (
+                "feature_encoding",
+                ColumnTransformer(
+                    transformers=[
+                        (
+                            "num",
+                            Pipeline([("scaler", StandardScaler())]),
+                            numeric_features,
+                        ),
+                        (
+                            "cat",
+                            Pipeline(
+                                [
+                                    (
+                                        "onehot",
+                                        OneHotEncoder(
+                                            handle_unknown="ignore",
+                                            sparse_output=False,
+                                        ),
+                                    )
+                                ]
+                            ),
+                            categorical_features,
+                        ),
+                    ],
+                    remainder="drop",
+                ),
+            ),
+        ]
+    )
 
 
-def main():
-    """Executes the complete ETL pipeline."""
-    
-    print("="*60)
-    print("🏥 PIPELINE DE DATOS: ACCIDENTES CEREBROVASCULARES (ACV)")
-    print("="*60)
-    
-    try:
-        # ============ 1. EXTRACCIÓN (CARGA DE DATOS) ============
-        print("\n📥 Fase 1: Extracción de datos")
-        raw_dir = "data/raw"
-        csv_path = find_csv_file(raw_dir)
-        df_raw = pd.read_csv(csv_path)
-        
-        # ============ 2. AUDITORÍA INICIAL ============
-        # Asegura que el dataset no haya sido alterado externamente
-        print("\n🔍 Fase 2: Auditoría de integridad")
-        audit_dataframe(df_raw, "Carga Inicial")
-        
-        # ============ 3. OPTIMIZACIÓN DE MEMORIA ============
-        # Reduce el peso del DataFrame transformando tipos de datos (ej. float64 -> float32)
-        print("\n⚙️  Fase 3: Optimización de memoria")
-        df_opt = optimize_memory(df_raw)
-        
-        # ============ 4. PREPROCESAMIENTO (TRANSFORMACIÓN) ============
-        print("\n🏗️  Fase 4: Construcción y aplicación del Pipeline")
-        pipeline = build_preprocessing_pipeline(df_opt, target_col='stroke')
-        
-        # Separamos el target antes de transformar (Para evitar que se modifique o escale)
-        y = df_opt['stroke'] if 'stroke' in df_opt.columns else None
-        
-        # Aplicamos la transformación matemática
-        processed_matrix = pipeline.fit_transform(df_opt)
-        
-        # Recuperamos los nombres de las columnas post-transformación (ej. variables One-Hot)
-        try:
-            feature_names = pipeline.named_steps['preprocessing'].get_feature_names_out()
-            feature_names = [name.split("__")[-1] for name in feature_names]
-        except Exception:
-            feature_names = [f"feature_{i}" for i in range(processed_matrix.shape[1])]
-            
-        df_processed = pd.DataFrame(processed_matrix, columns=feature_names, index=df_opt.index)
-        
-        # Re-acoplamos la variable objetivo limpia al final del dataset
-        if y is not None:
-            df_processed['stroke'] = y
-            
-        # ============ 5. CARGA (GUARDADO FINAL) ============
-        print("\n💾 Fase 5: Guardado del dataset procesado")
-        processed_dir = Path("data/processed")
-        processed_dir.mkdir(parents=True, exist_ok=True)
-        
-        output_path = processed_dir / "stroke_data_processed.csv"
-        
-        try:
-            df_processed.to_csv(output_path, index=False)
-            print(f"✅ Archivo generado exitosamente en: {output_path}")
-        except Exception as e:
-            raise ValueError(f"❌ Error al guardar CSV: {e}")
-        
-        # ============ RESUMEN FINAL ============
-        print("\n" + "="*60)
-        print("✅ PIPELINE COMPLETADO EXITOSAMENTE")
-        print("="*60)
-        print(f"\n📋 Resumen:")
-        print(f"   • Entrada:  data/raw/{Path(csv_path).name}")
-        print(f"   • Salida:   {output_path}")
-        print(f"   • Filas procesadas: {df_processed.shape[0]}")
-        print(f"   • Columnas finales: {df_processed.shape[1]}")
-        print("\n✨ ¡Listo para el análisis o modelado!\n")
-        
-        return 0
-    
-    except FileNotFoundError as e:
-        print(f"\n❌ ERROR: {e}")
-        print("\n💡 Solución:")
-        print(f"   1. Verifica que exista la carpeta 'data/raw/'")
-        print(f"   2. Coloca tu archivo CSV en esa carpeta")
-        print(f"   3. Ejecuta nuevamente: python main.py\n")
-        traceback.print_exc()
+def main() -> int:
+    """Run a live validation of the supervised modeling pipeline."""
+    project_root = Path(__file__).resolve().parent
+    data_path = project_root / "data" / "raw" / "healthcare-dataset-stroke-data.csv"
+
+    if not data_path.exists():
+        print(f"Missing dataset: {data_path}")
         return 1
-    
-    except Exception as e:
-        print(f"\n❌ ERROR FATAL DE EJECUCIÓN: {e}")
-        traceback.print_exc()
-        return 1
+
+    df_raw = pd.read_csv(data_path)
+    print("Dataset loaded")
+    print(f"Rows: {df_raw.shape[0]}, Columns: {df_raw.shape[1]}")
+
+    target = "stroke"
+    X_raw = df_raw.drop(columns=[target, "id"])
+    y_raw = df_raw[target]
+
+    feature_preprocessor = build_feature_preprocessor(X_raw)
+    model_registry = get_model_registry(random_state=42)
+    model_pipelines = {
+        name: Pipeline(
+            [
+                ("preprocessing", feature_preprocessor),
+                ("classifier", estimator),
+            ]
+        )
+        for name, estimator in model_registry.items()
+    }
+
+    cv = build_stratified_kfold(n_splits=5, random_state=42)
+    summary = print_model_comparison_report(
+        models=model_pipelines,
+        X=X_raw,
+        y=y_raw,
+        cv=cv,
+        random_state=42,
+    )
+
+    best_model = summary.iloc[0]
+    print("\nBest supervised candidate")
+    print(best_model.to_string())
+    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
