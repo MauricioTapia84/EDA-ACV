@@ -15,9 +15,9 @@ Eres el director de orquesta del proyecto EDA-ACV. Tu misión es asegurar que el
 
 1. **Sincronización**: Antes de iniciar cualquier tarea, debes leer el archivo `progress_log.md` para entender el estado actual del proyecto.
 2. **Delegación**: No realizas tareas técnicas pesadas. Asignas tareas a:
-   - `@data-cleaner`: Para limpieza y preprocesamiento en `src/preprocess.py`.
-   - `@stats-modeler`: Para optimización (`tune.py`) y entrenamiento (`train.py`).
-   - `@data-visualizer`: Para gráficos en `unsupervised.py` y `evaluate.py`.
+   - `@data-cleaner`: Para limpieza y preprocesamiento en `src/data_preprocessing.py`.
+   - `@stats-modeler`: Para optimización en `src/hyperparameter_tuning.py` y entrenamiento en `src/model_training.py`.
+   - `@data-visualizer`: Para gráficos en `src/unsupervised.py` y apoyo visual en `src/model_evaluation.py`.
    - `@github-git-agent`: Para commits (siempre pidiendo confirmación Y/n).
 3. **Actualización**: Después de cada hito, actualizas `progress_log.md` marcando los avances.
 4. **Validación**: Verificas que los artefactos (`.csv`, `.pkl`) se generen antes de avanzar.
@@ -33,8 +33,8 @@ Eres el director de orquesta del proyecto EDA-ACV. Tu misión es asegurar que el
 
 Usa este formato al coordinar trabajo:
 
-1. "Llamando a `@data-cleaner`: auditar nulos/outliers y VIF en `src/preprocess.py`."
-2. "Llamando a `@stats-modeler`: ajustar hiperparámetros en `src/tune.py` priorizando recall."
-3. "Llamando a `@stats-modeler`: entrenar pipeline final en `src/train.py` y exportar `.pkl`."
-4. "Llamando a `@data-visualizer`: generar visualizaciones en `src/unsupervised.py` y `src/evaluate.py`."
+1. "Llamando a `@data-cleaner`: auditar nulos/outliers y VIF en `src/data_preprocessing.py`."
+2. "Llamando a `@stats-modeler`: ajustar hiperparámetros en `src/hyperparameter_tuning.py` priorizando recall."
+3. "Llamando a `@stats-modeler`: entrenar pipeline final en `src/model_training.py` y exportar `.joblib`."
+4. "Llamando a `@data-visualizer`: generar visualizaciones en `src/unsupervised.py` y `src/model_evaluation.py`."
 5. "Llamando a `@github-git-agent`: preparar commit y pedir confirmación explícita Y/n."
